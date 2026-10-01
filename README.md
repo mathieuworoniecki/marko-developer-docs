@@ -12,7 +12,7 @@ par clé restent disponibles dans l'administration d'entité MARKO.
 Dans le projet Mintlify qui dessert `developers.marko.fr`, connecter ce dépôt
 GitHub et choisir la branche `main` comme branche de publication. Les fichiers
 Mintlify se trouvent à la racine du dépôt. Après le premier déploiement,
-contrôler la page d'accueil, l'onglet « Référence API », la copie Markdown et
+contrôler la page d'accueil, la section « Référence API » du menu latéral, la copie Markdown et
 `https://developers.marko.fr/llms.txt`.
 
 ## Vérification locale

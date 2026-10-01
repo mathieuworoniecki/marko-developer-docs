@@ -19,22 +19,17 @@
     "prompt": "Rechercher…"
   },
   "navigation": {
-    "tabs": [
+    "groups": [
       {
-        "tab": "Guides",
-        "groups": [
-          {
-            "group": "Démarrer",
-            "pages": ["index", "quickstart", "authentication"]
-          },
-          {
-            "group": "Intégrer",
-            "pages": ["environments", "errors-and-retries"]
-          }
-        ]
+        "group": "Démarrer",
+        "pages": ["index", "quickstart", "authentication"]
       },
       {
-        "tab": "Référence API",
+        "group": "Intégrer",
+        "pages": ["environments", "errors-and-retries"]
+      },
+      {
+        "group": "Référence API",
         "openapi": "https://partner-api.marko.fr/v1/openapi.json"
       }
     ]
