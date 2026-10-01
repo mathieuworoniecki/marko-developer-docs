@@ -1,0 +1,47 @@
+---
+title: "Écritures et idempotence"
+description: "Synchroniser des ressources sans doublons et reprendre une écriture après une réponse incertaine."
+---
+
+## Une clé par intention
+
+Les routes qui le précisent exigent `Idempotency-Key`. La valeur contient au maximum 255 caractères ASCII visibles, sans espaces. Générez une clé unique pour une mutation logique; conservez **la même clé, la même cible et le même contenu** pendant les reprises. Une mutation différente reçoit une nouvelle clé.
+
+```http
+Authorization: Bearer YOUR_ACCESS_TOKEN
+Idempotency-Key: crm-operation-001-revision-01
+X-Request-ID: crm-sync-operation-001
+```
+
+`X-Request-ID` sert au diagnostic et ne remplace pas la clé d'idempotence. Un header d'idempotence absent produit `428`, invalide `400`, et une réutilisation incompatible peut produire `409`.
+
+Le header reste obligatoire sur les écritures concernées, même lorsque la déduplication des reprises est désactivée pour une famille ou un environnement. Sa présence ne promet donc pas à elle seule une déduplication universelle ou une rétention illimitée. La politique active de l'entité et de la famille doit être confirmée lors de l'intégration.
+
+## Identifiants externes
+
+Les routes `/external/{external_id}` associent l'identifiant stable de votre système à un identifiant MARKO. Les références sont isolées par entité, intégration cliente, environnement et type de ressource. Conservez l'identifiant externe et l'identifiant MARKO renvoyé; ne reconstruisez pas une association à partir du nom.
+
+Les identifiants des opérations, opérateurs, SPV et notes externes acceptent les lettres ASCII, chiffres et caractères `._:~-`, avec une première position limitée à une lettre, un chiffre ou `_~-`, et une longueur maximale de 255. La référence indique les contraintes de chaque route, notamment celles des documents.
+
+Pour une première association explicite, certaines routes acceptent `existing_marko_id`. La cible doit être compatible et accessible; ce champ n'autorise pas une réaffectation arbitraire. Les upserts opérateur et SPV peuvent restaurer une ressource supprimée logiquement en conservant son UUID.
+
+## Upsert synchrone d'une opération
+
+Cet exemple est synthétique. Il crée ou met à jour une opération sans choisir une valeur de taxonomie propre à votre entité :
+
+```bash
+curl --fail-with-body -X PUT \
+  "$MARKO_API_BASE_URL/operations/external/crm-example-001" \
+  -H "Authorization: Bearer $MARKO_ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -H "Idempotency-Key: crm-example-001-revision-01" \
+  --data '{"name":"Exemple MARKO"}'
+```
+
+Une création renvoie `201`; une mise à jour, restauration ou répétition sans changement renvoie `200`. La réponse contient directement `marko_id` et la ressource. Aucune attente de job n'est nécessaire pour cet endpoint. Les notes passent par leur route dédiée; l'import `/operations/batch` est, lui, asynchrone.
+
+## Reprendre une réponse incertaine
+
+Après un timeout ou une coupure réseau, vérifiez la ressource par son identifiant externe ou le job accepté. Si une reprise est nécessaire, renvoyez la même intention avec sa clé conservée. N'envoyez pas immédiatement une nouvelle clé pour la même écriture : le premier appel a pu être validé malgré l'absence de réponse.
+
+Une réponse `409` demande un diagnostic de la clé, du contenu, de l'association externe, de la cible ou de la version source. Elle ne se résout pas en changeant automatiquement la clé. Pour les notes importées, les dates source imposent aussi une règle de [mise à jour versionnée](/imports-and-notes).

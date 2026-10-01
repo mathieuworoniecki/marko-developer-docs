@@ -1,0 +1,61 @@
+---
+title: "Imports et notes"
+description: "Importer un lot durable, suivre chaque élément et préserver les dates historiques des notes."
+---
+
+## Choisir le mode d'import
+
+Pour une ressource à la fois, les upserts externes opérations, SPV, opérateurs et notes renvoient immédiatement la cible MARKO. Pour un lot d'opérations avec leurs notes, utilisez `POST /operations/batch` avec `operations:write` et `Idempotency-Key`.
+
+Le lot accepte **1 à 500 opérations**, **10 000 notes au total** et une enveloppe normalisée d'au plus **20 Mio**. Une opération importée est également soumise à la limite de 20 Mio. Découpez les gros imports avant l'envoi et conservez les identifiants externes entre les lots.
+
+```json
+{
+  "operations": [
+    {
+      "external_id": "crm-example-001",
+      "name": "Exemple MARKO",
+      "notes": [
+        {
+          "external_id": "note-example-001",
+          "date": "2026-10-01T10:00:00Z",
+          "text": "Note historique synthétique.",
+          "category": "libre",
+          "source_updated_at": "2026-10-01T10:00:00Z"
+        }
+      ]
+    }
+  ]
+}
+```
+
+Ce JSON est un exemple synthétique, pas une donnée présente dans votre entité.
+
+## Suivre le job jusqu'au résultat métier
+
+Une réponse `202` contient `job_id`, `status_url`, `results_url` et les compteurs reçus. Elle signifie que le lot est accepté, pas que chaque élément a réussi.
+
+1. Conservez `job_id` durablement dans votre intégration.
+2. Consultez `GET /import-jobs/{job_id}` avec `operations:read` et un délai entre lectures.
+3. Lisez `GET /import-jobs/{job_id}/items` en paginant ses résultats. Utilisez `status` et `item_kind` pour isoler les échecs ou conflits.
+4. Exploitez les compteurs `completed_items`, `noop_items`, `failed_items` et `conflict_items`, puis relisez les ressources dont vous avez besoin.
+
+Chaque élément contient son identifiant externe, son statut, ses tentatives et, lorsqu'ils existent, `target_id`, `result`, `error_code`, `error_message` et `conflict_payload`. Une erreur locale ne signifie pas que tout le lot a été annulé.
+
+`POST /import-jobs/{job_id}/retry` réenfile un job `failed` ou `partial`; les éléments déjà terminés restent des no-op. `POST /import-jobs/{job_id}/cancel` demande un arrêt au prochain point de reprise durable. Une annulation n'est pas un rollback des éléments déjà persistés. Ces actions exigent `operations:write` et une clé d'idempotence.
+
+## Notes historiques
+
+La route `PUT /operations/external/{operation_external_id}/notes/external/{note_external_id}` importe une note dans une opération déjà résolue. Le GET équivalent vérifie aussi que la note appartient à l'opération externe indiquée.
+
+`date` est la date métier. Une date `YYYY-MM-DD` est normalisée à minuit UTC; une date-heure doit inclure un fuseau. `source_created_at` et `source_updated_at`, lorsqu'ils sont fournis, doivent inclure un fuseau; la mise à jour source ne peut pas précéder la création source.
+
+Pour une note déjà versionnée, un contenu modifié doit fournir un `source_updated_at` strictement plus récent. Ne réécrivez pas l'histoire en utilisant l'heure d'import à la place de la date source. Un conflit doit être résolu dans votre synchronisation avant reprise.
+
+`category` est une chaîne de 1 à 80 caractères, `libre` par défaut. Les valeurs usuelles incluent `call`, `comite` et `juridique`. L'import externe peut créer une option d'entité inconnue; conservez les codes et les `taxonomy_additions` retournés. Les routes `/comments` restent utiles pour les notes ordinaires sans identifiant externe.
+
+## Notes traduites
+
+Fournissez `text` ou un `description_i18n` non vide. Chaque texte contient au plus 10 000 caractères. `description_i18n` accepte au plus 20 locales, 100 000 caractères agrégés et des codes de locale d'au plus 35 caractères. Les locales sont normalisées en minuscules avec des tirets; une collision après normalisation est refusée.
+
+Sans `text`, MARKO choisit une traduction française, puis anglaise, puis la première locale triée pour le texte principal. Les notes importées sont aussi visibles dans la chronologie; le récit peut exposer `note_date`, `note_text` et `note_category` dans ses métadonnées.

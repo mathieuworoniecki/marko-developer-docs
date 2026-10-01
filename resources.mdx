@@ -1,0 +1,44 @@
+---
+title: "Ressources de l'API"
+description: "Trouver les familles métier et choisir les routes utiles à votre intégration."
+---
+
+La référence du menu contient toutes les **158 opérations stables** du contrat public documenté. Les routes bêta et l'administration interne n'en font pas partie. Dépliez une famille pour lire ses endpoints, champs, réponses, scopes et contraintes.
+
+| Famille | Utilisation |
+| --- | --- |
+| Authentification | Échanger une signature HMAC contre un bearer court. |
+| Entité et portefeuille | Lire le contexte de l'intégration, les agrégats portefeuille et le résumé RCCI. |
+| Deals | Pipeline CRM avant closing, détail et notes attachées. |
+| Fonds et SPV | Structures d'investissement, rattachements et synchronisation externe des SPV. |
+| Opérateurs | Identités et métadonnées, synchronisation externe et risques tiers. |
+| Opérations | Liste, détail, synchronisation externe, imports et notes. |
+| Taxonomies et champs métier | Codes visibles de l'entité et définitions des propriétés métier. |
+| Chronologie | Événements paginés et récit d'une opération. |
+| Documents | Fiches, téléchargement disponible, upload et rattachement. |
+| Utilisateurs | Gestion des utilisateurs de l'entité, activation, suspension et actions de compte. |
+| Utilisateur délégué | Profil, préférences, vues sauvegardées, dashboards et traitement RGPD. |
+| Paramètres | Paramètres métier, reporting et branding de l'entité. |
+| Recherche | Recherche transversale des ressources ou du contenu documentaire indexé. |
+| Alertes et notifications | Lecture, acquittement, résolution, report et faux positifs selon la ressource. |
+| Calendrier | Événements persistés, modifications et décisions d'acceptation ou de rejet. |
+| Enrichissement SIREN | Lecture locale, validation et résolution fournisseur explicite. |
+| Remboursements | Échéances/remboursements enregistrés sur une opération. |
+| Reporting | Export INREV XLSX, templates et aperçus tabulaires. |
+| Workflows | Presets, définitions, exécutions, historique et recommandations. |
+| Extraction IA | Jobs documentaires, suivi et résultats publics. |
+| Tâches | Board Kanban, tâches d'opération, réordonnancement et labels. |
+
+## Enrichissement SIREN
+
+`GET /enrichment/siren/{siren}` lit le cache ou les données locales sans déclencher d'appel facturable. `/validate` vérifie le format et le checksum sans fournisseur externe. Pour une résolution pouvant appeler Pappers, utilisez explicitement `POST /enrichment/siren/{siren}/resolve`, avec `operateurs:write` et une clé d'idempotence.
+
+Supprimer le cache ne déclenche pas une nouvelle résolution. Après une réponse incertaine d'une résolution fournisseur, conservez la même clé pour la même intention afin de préserver sa réconciliation; ne créez pas une nouvelle clé pour forcer un appel.
+
+## Reporting binaire
+
+`GET /reports/inrev` renvoie un fichier XLSX et non du JSON. Votre client doit lire des octets et enregistrer le fichier, en vérifiant le statut et le type de contenu avant de le considérer comme un classeur. Les autres routes de templates et d'aperçu renvoient leurs modèles JSON décrits dans la référence.
+
+## Quel endpoint choisir ?
+
+Pour une synchronisation depuis un CRM, commencez par les [écritures externes](/writes-and-idempotency), puis les [imports et notes](/imports-and-notes). Pour un document, suivez [l'upload direct](/documents-guide). Pour une interface d'un utilisateur, vérifiez d'abord [la délégation et ses capacités](/scopes-and-delegation).

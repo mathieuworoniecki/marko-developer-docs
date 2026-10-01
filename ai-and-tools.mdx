@@ -1,0 +1,52 @@
+---
+title: "IA et outils de développement"
+description: "Copier une page ou toute la documentation, récupérer OpenAPI et générer un client."
+---
+
+import { CopyDocumentation } from "/snippets/CopyDocumentation.jsx"
+
+## Copier toute la documentation
+
+<CopyDocumentation />
+
+Le fichier regroupe les guides et le contrat OpenAPI enrichi des 158 opérations stables, avec ses schémas référencés. Il est volumineux : pour une tâche ciblée, fournir seulement les pages utiles évite de saturer le contexte de votre assistant.
+
+## Copier une page
+
+Le menu **Copy page** de chaque page permet de copier son Markdown, voir la version texte et l'ouvrir dans ChatGPT ou Claude. Les pages API contiennent le scope requis dans leur texte; les extensions `x-marko-*` du contrat ne sont pas le seul endroit où lire cette information.
+
+L'[index des pages](https://developers.marko.fr/llms.txt) permet à un agent de découvrir la documentation. Les pages sont également disponibles en Markdown en ajoutant `.md` à leur URL. Le [texte complet généré par le site](https://developers.marko.fr/llms-full.txt) et le téléchargement ci-dessus permettent de lire plusieurs familles sans parcourir l'interface.
+
+## Contrats machine
+
+| Document | Usage |
+| --- | --- |
+| [OpenAPI enrichi de cette documentation](https://raw.githubusercontent.com/mathieuworoniecki/marko-developer-docs/main/openapi.json) | Types réels, champs obligatoires, réponses, scopes et exemples synthétiques. |
+| [OpenAPI public de l'API](https://partner-api.marko.fr/v1/openapi.json) | Catalogue stable fourni directement par le service. |
+| [Collection Postman publique](https://partner-api.marko.fr/v1/postman.json) | Explorer les appels du catalogue public. |
+| Export filtré par clé dans MARKO | Voir les opérations autorisées par les scopes et restrictions d'une clé donnée. |
+
+Le contrat enrichi contient `x-documentation-provenance`, qui identifie la version du backend utilisée pour les types et l'empreinte du catalogue public. Une référence documentée ne prouve pas que votre clé y a accès ni qu'une ressource d'exemple existe.
+
+Le téléchargement complet est un fichier JSON dont le champ `markdown` contient le texte à fournir à votre assistant. Le bouton de copie extrait directement ce texte pour le presse-papiers.
+
+## SDK et client généré
+
+Cette documentation ne fournit pas de SDK officiel MARKO. Vous pouvez générer un client à partir d'OpenAPI avec un générateur compatible OpenAPI 3.1, puis ajouter l'échange HMAC et la gestion des reprises. Le client HTTP doit prendre en charge les timeouts, `application/problem+json`, les fichiers multipart et les réponses binaires.
+
+Conservez les secrets dans l'environnement du serveur ou un gestionnaire de secrets. Les exemples sont synthétiques : remplacez leurs identifiants par ceux de votre contexte, sans les traiter comme des ressources de test disponibles.
+
+## Contexte utile pour un assistant
+
+```text
+Utilise la documentation MARKO Developers et son OpenAPI enrichi.
+Base URL: https://partner-api.marko.fr/v1 (ou l'hôte fourni par notre équipe).
+Authentification: HMAC-SHA256 vers POST /auth/token, puis bearer court.
+Vérifie le scope de chaque route et les capacités de délégation nécessaires.
+Préserve les identifiants externes et les clés d'idempotence entre les reprises.
+Ne considère pas HTTP 202 comme la fin d'un traitement.
+Consulte les taxonomies et le référentiel des champs plutôt que d'inventer des codes.
+Pour un fichier neuf, utilise directement /documents/external/{external_id}/upload.
+N'invente pas de route, de SDK officiel, de droit d'accès ou de donnée d'exemple réelle.
+Ne place jamais un secret ou un bearer dans le code publié.
+```

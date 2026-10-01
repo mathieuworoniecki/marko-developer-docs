@@ -1,0 +1,50 @@
+---
+title: "Scopes et délégation"
+description: "Choisir les droits de l'intégration et appeler les routes d'un utilisateur délégué."
+---
+
+Chaque clé est rattachée à une entité et à un environnement de données. Le bearer conserve ce contexte : un paramètre, un identifiant ou un header ne permet pas de changer d'entité. Les droits peuvent combiner **scopes**, **routes autorisées**, **restrictions IP** et, pour certains documents, droits d'accès à la dataroom. Une route présente dans cette documentation n'est donc pas automatiquement accessible à votre clé.
+
+Le scope requis apparaît sur chaque page de la référence. Demandez à l'administrateur les droits nécessaires à votre intégration et son export OpenAPI filtré par clé. `POST /auth/token` est l'exception : l'échange signé ne nécessite pas de bearer préalable.
+
+## Lecture et écriture
+
+Les scopes `*:read` permettent les lectures de la famille concernée et les scopes `*:write` ses mutations. Certaines routes utilisent un scope d'une autre famille : les remboursements demandent `operations:*`, l'enrichissement SIREN `operateurs:*`, le résumé RCCI `portfolio:read` et les jobs d'extraction `ai_extraction:*`.
+
+La référence est autoritative pour le scope d'une opération : ne le déduisez pas du verbe HTTP. Par exemple, `POST /workflows/recommendations/preview` demande `workflows:read`.
+
+## Routes /users/me
+
+Ces routes concernent le **sujet utilisateur délégué**, pas un compte implicitement choisi à partir de la clé. Fournissez exactement un des deux headers :
+
+```http
+Authorization: Bearer YOUR_ACCESS_TOKEN
+X-Marko-Delegated-User-Email: integration@example.com
+```
+
+Vous pouvez remplacer le header email par `X-Marko-Delegated-User-Id`. N'envoyez pas les deux. L'utilisateur doit appartenir à l'entité de la clé, avoir le statut approuvé et être autorisé par l'allowlist utilisateur de la clé.
+
+Les routes ci-dessous exigent aussi une allowlist utilisateur **explicitement renseignée**, une capacité et le scope de lecture ou d'écriture correspondant :
+
+| Routes | Capacité |
+| --- | --- |
+| Profil, préférences et préférences d'alerte `/users/me` | `user_self_service` |
+| `/users/me/saved-views` | `saved_views` |
+| `/users/me/custom-dashboards` | `custom_dashboards` |
+| `/users/me/rgpd/export` | `rgpd_export` |
+| `/users/me/rgpd/inventory` | `rgpd_inventory` |
+| `/users/me/rgpd/erasure` | `rgpd_erasure` |
+
+La délégation ne contourne pas les droits du sujet : certaines écritures sont refusées pour un utilisateur en lecture seule. Les vues et dashboards délégués sont soumis à leurs règles de propriété.
+
+## Diagnostiquer un refus
+
+Un header manquant ou les deux headers ensemble produisent `400`. Un sujet introuvable dans l'entité produit `404`. Un utilisateur non approuvé, non autorisé ou une capacité absente produit `403`. Ajoutez `X-Request-ID` pour permettre au support de retrouver la requête sans transmettre votre secret ni votre bearer.
+
+Pour les routes RGPD, consultez [le traitement des données personnelles](/privacy-guide).
+
+## Vues sauvegardées
+
+Le nom de vue est normalisé et doit rester non vide. L'état `filters`, `columns` et `sort` est limité à 16 384 octets JSON; les bornes sont de 24 clés de filtre, 64 colonnes et 4 clés de tri. Les tokens d'icône et de couleur acceptés figurent dans le schéma de création et de mise à jour.
+
+Pour une vue `operations`, les clés de filtre sont `preset`, `search`, `statut`, `statut_interne`, `statut_operationnel`, `cycle_interne`, `classe_actif`, `type_investissement` et `operateur_id`. `status` n'est pas une clé de filtre acceptée pour cet objet, même si d'autres endpoints utilisent ce paramètre. Le tri utilise `sort_by` et `sort_order` (`asc` ou `desc`); colonnes et champs de tri sont contrôlés par les allowlists du schéma. Les mises à jour restent soumises au type de la vue déjà enregistrée.

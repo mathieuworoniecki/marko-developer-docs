@@ -7,14 +7,41 @@ Les erreurs documentées dans le contrat public utilisent `application/problem+j
 
 | Statut | Sens | Action |
 | --- | --- | --- |
+| `400` | Header, combinaison de paramètres ou demande invalide | Corriger la requête, notamment l'idempotence ou les headers de délégation. |
 | `401` | Échange ou bearer invalide ou expiré | Vérifier la signature, l'horloge et le bearer ; refaire un échange avec un nouveau nonce si nécessaire. |
 | `403` | Scope, route ou IP non autorisé | Vérifier les droits de la clé avec l'administrateur de l'entité. |
-| `409` | Clé d'idempotence réutilisée avec un autre contenu | Corriger l'appel ; ne pas recycler cette clé pour une mutation différente. |
+| `404` | Ressource absente ou non accessible dans ce contexte | Vérifier l'identifiant et l'entité; ne pas changer de clé pour contourner les droits. |
+| `409` | Conflit d'idempotence, d'association, de cible ou de version source | Diagnostiquer le conflit; ne pas le masquer en générant une autre clé. |
+| `412` | Précondition/version non satisfaite sur une route qui l'exige | Relire la ressource et réévaluer l'intention avant une nouvelle mutation. |
+| `413` | Limite de taille du serveur ou proxy | Réduire ou découper l'envoi selon les limites de la route. |
 | `422` | Paramètre ou corps invalide | Corriger la requête selon l'endpoint. |
 | `428` | `Idempotency-Key` requis mais absent | Ajouter une clé d'idempotence à cette écriture. |
 | `429` | Limite de débit atteinte | Respecter `Retry-After` quand il est présent. |
 | `500` | Erreur serveur | Réessayer prudemment ; conserver la même clé d'idempotence pour une écriture déjà soumise. |
+| `503` | Service ou stockage temporairement indisponible | Reprendre avec attente, en conservant l'identité de la mutation; diagnostiquer si cela persiste. |
+
+Tous ces statuts ne s'appliquent pas à toutes les routes. La page de référence décrit les réponses du contrat; certains refus métier ou de l'infrastructure peuvent ajouter un statut. Un dépassement de fichier peut également être exposé en `422` par l'application.
+
+## Lire le problème retourné
+
+```json
+{
+  "type": "about:blank",
+  "title": "Forbidden",
+  "status": 403,
+  "detail": "The API key does not allow this operation.",
+  "request_id": "example-request-001"
+}
+```
+
+Cet exemple est synthétique. `detail` décrit le problème et peut contenir des informations métier structurées selon la route. Conservez le statut, le `request_id` et les codes structurés lorsqu'ils sont disponibles. Évitez de dépendre de la traduction ou du texte exact d'un message.
+
+## Politique de reprise
+
+Corrigez les erreurs de validation et d'accès avant de réessayer. Pour `429`, respectez `Retry-After` lorsqu'il est fourni. Pour une panne transitoire ou une coupure, utilisez une attente croissante, un léger aléa et un nombre de tentatives borné; le timeout HTTP ne prouve pas qu'une mutation a échoué.
+
+Si votre SDK attend toujours du JSON, traitez séparément les réponses `204` sans corps, les exports binaires et les erreurs renvoyées par un proxy. Pour les jobs, continuez le suivi de l'identifiant connu plutôt que de soumettre un nouveau lot.
 
 Les opérations d'écriture qui exigent `Idempotency-Key` l'indiquent dans leur page de référence. Générez une clé unique pour chaque mutation logique et réutilisez **la même clé et le même contenu** lors d'une reprise après une réponse incertaine. N'envoyez pas une mutation une seconde fois avec une nouvelle clé tant que vous n'avez pas vérifié son résultat.
 
-Les règles de pagination dépendent de l'endpoint. Par exemple, `GET /operations` accepte `limit` et `offset` ; consultez la référence de la route appelée pour ses paramètres exacts.
+Consultez [Écritures et idempotence](/writes-and-idempotency) pour les reprises et [Pagination et données](/pagination-and-data) pour les listes.

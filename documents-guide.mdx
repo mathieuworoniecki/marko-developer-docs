@@ -1,0 +1,41 @@
+---
+title: "Documents et upload"
+description: "Transmettre un fichier, comprendre la déclaration metadata et vérifier le document obtenu."
+---
+
+## Uploader directement le fichier
+
+Pour envoyer le binaire et le rattacher à une opération, appelez directement `PUT /documents/external/{external_id}/upload` avec un **nouvel identifiant externe**. Il faut `documents:write`, une clé d'idempotence, le fichier, son `type` et `operation_id` ou `operation_external_id`.
+
+```bash
+curl --fail-with-body -X PUT \
+  "$MARKO_API_BASE_URL/documents/external/document-example-001/upload" \
+  -H "Authorization: Bearer $MARKO_ACCESS_TOKEN" \
+  -H "Idempotency-Key: document-example-001-upload-01" \
+  -F "file=@./exemple.pdf;type=application/pdf" \
+  -F "type=autre" \
+  -F "operation_external_id=crm-example-001" \
+  -F 'partner_metadata={"source":"crm","reference":"document-example-001"}'
+```
+
+L'opération d'exemple doit exister dans votre contexte. Laissez cURL créer le header `Content-Type` et sa boundary multipart. N'envoyez pas le fichier en Base64. Dans un formulaire multipart, `partner_metadata` est une **chaîne contenant un objet JSON**, contrairement à la déclaration JSON où c'est un objet.
+
+Lorsque les deux identifiants d'opération sont fournis, `operation_id` est utilisé. La lecture applicative est bornée à 500 Mio dans la version documentée; un proxy ou l'infrastructure peut imposer une limite inférieure. Le message d'erreur actuel de dépassement mentionne encore « 50 MB » : ce texte ne décrit pas la constante applicative effective.
+
+## Réponses et reprises
+
+La réponse contient `external_id`, `document_id`, `created` et `document`. Une création répond `201`, une référence existante `200`. Conservez le `document_id` et relisez `GET /documents/{document_id}` avec `documents:read` pour vérifier ses métadonnées et l'URL de téléchargement disponible.
+
+La reprise compare notamment le contenu du fichier, son nom, son type et les métadonnées de l'appel initial. Réutilisez la même clé et le même contenu; un identifiant externe déjà associé à un autre contenu peut produire `409`. N'utilisez pas cette route pour remplacer arbitrairement un fichier existant.
+
+## Déclaration metadata
+
+`PUT /documents/external/{external_id}` déclare une fiche documentaire JSON sans envoyer de binaire. Elle exige aussi une opération et `documents:write`. Cette route ne constitue pas une étape obligatoire avant `/upload`.
+
+Dans la version documentée, `/upload` peut renvoyer une fiche déjà déclarée sous le même identifiant externe **sans lui ajouter le fichier**. Pour importer réellement un fichier, commencez donc par l'upload direct avec un identifiant externe neuf. Une réponse `200` ou `created=false` ne prouve pas qu'un fichier vient d'être stocké.
+
+## Modifier ou rattacher un document
+
+`PUT /documents/{document_id}` modifie les métadonnées; il ne remplace pas le contenu binaire. `POST /documents/{document_id}/attach-operation` rattache atomiquement un document non affecté. Une nouvelle intention échoue si le document est déjà rattaché; une reprise avec la même clé conserve la première réponse lorsque la déduplication applicable est active.
+
+Les droits dataroom et le contexte de la clé restent applicables. Une URL absente peut correspondre à une fiche sans fichier ou à une disponibilité limitée; vérifiez les propriétés renvoyées. La suppression documentaire est logique et ne doit pas être assimilée à une promesse d'effacement immédiat de toutes les copies.

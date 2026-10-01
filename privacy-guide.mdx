@@ -1,0 +1,36 @@
+---
+title: "Données personnelles et RGPD"
+description: "Comprendre les exports délégués, leur couverture et les résultats d'effacement durables."
+---
+
+Ces routes s'appliquent au sujet utilisateur explicitement délégué dans l'entité de la clé. Elles exigent le scope `users:read` ou `users:write`, une allowlist explicite et la capacité correspondante. Consultez [Scopes et délégation](/scopes-and-delegation) avant de les appeler.
+
+## Inventaire
+
+`GET /users/me/rgpd/inventory` décrit les sources connues, champs, champs personnels et présence de données. `auth_database` couvre les sources du compte; `entity_databases` décrit le périmètre des bases d'entité, les compteurs et les avertissements.
+
+Un compteur `null` avec un avertissement signale une source non inspectée; il ne signifie pas zéro donnée. L'inventaire ne contient pas nécessairement les enregistrements eux-mêmes et ne vaut pas confirmation d'effacement.
+
+## Export JSON
+
+`GET /users/me/rgpd/export` renvoie un téléchargement JSON `marko_privacy_export/v2`, avec le header `X-Marko-Privacy-Case-Id`. Stockez le fichier dans un emplacement adapté aux données personnelles et conservez l'identifiant du dossier.
+
+Le fichier contient notamment le profil, les préférences, les sources centrales autorisées, les projections de l'entité courante et un **manifest**. La référence détaille aussi les projections exportées par source. Certaines sources sont volontairement limitées aux métadonnées : les binaires des pièces jointes, les prompts IA chiffrés, les résultats chiffrés de fournisseurs et certaines données métier de tiers ne sont pas intégrés.
+
+Les notifications et audits centraux dont le périmètre d'entité ne peut pas être prouvé sont retenus : leurs tableaux centraux peuvent être vides alors que le manifest signale des enregistrements détectés et un export incomplet.
+
+Vérifiez `manifest.complete`, `failed_required_sources`, le statut de chaque source et ses limitations. `case_finalization_pending=true` indique que la finalisation du dossier a lieu après la livraison du fichier. Ne transformez pas la présence d'un JSON ou `HTTP 200` en preuve que toutes les sources ont été exportées. Aucun certificat ni URL de téléchargement temporaire n'est promis par cet export.
+
+## Effacement délégué
+
+`DELETE /users/me/rgpd/erasure` exige `users:write`, la capacité `rgpd_erasure`, l'utilisateur délégué, `Idempotency-Key` et ce corps :
+
+```json
+{"confirm": true}
+```
+
+La réponse est limitée aux métadonnées : `privacy_case_id`, `status`, `result_mode=metadata_only`, besoins de réconciliation ou de revue manuelle, éventuelle référence de certificat, date de fin, actions et drapeau `replayed`.
+
+`202` indique un dossier accepté dont le traitement n'est pas terminé; `200` correspond à un dossier terminé. Une réponse rejouée ne déclenche pas automatiquement un nouvel effacement. Un dossier bloqué ou en réconciliation demande un suivi avec l'administrateur ou le support; n'envoyez pas de nouvelles clés pour forcer son passage.
+
+La suppression d'un utilisateur par `/users/{user_id}` et l'exercice du droit à l'effacement délégué sont des contrats distincts. Une invitation non activée peut être annulée immédiatement; un compte actif suit un workflow durable de retrait d'accès et d'effacement. Les données métier conservées et les obligations de conservation doivent être interprétées selon le dossier effectif.

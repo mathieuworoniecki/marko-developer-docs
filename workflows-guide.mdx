@@ -1,0 +1,40 @@
+---
+title: "Workflows et extraction IA"
+description: "Distinguer définitions, exécutions, recommandations et jobs d'analyse documentaire."
+---
+
+## Définitions et presets
+
+`GET /workflows/presets` décrit les presets, leurs champs, choix et configurations par défaut. `GET /workflows` retourne les automatisations système et personnalisées avec leurs drapeaux `editable`, `deletable` et `toggleable`. L'identifiant d'une définition peut être une clé textuelle, pas un UUID.
+
+Créez ou modifiez une définition personnalisée avec `/workflows/workflow-definitions`. Le preset détermine la structure de `config`. Les modes de planification pris en charge sont `manual`, `daily`, `weekly` et `monthly`; consultez le preset pour sa configuration. Remplacez les destinataires de démonstration par ceux que votre organisation a validés avant d'activer un workflow.
+
+Les presets actuels couvrent l'escalade sponsor de reporting, le digest comité, les tâches de kickoff closing, les relances documentaires, la veille contentieuse et le suivi des covenants. Le catalogue GET reste la source à consulter avant de construire une configuration.
+
+Les automatisations système ne sont pas toutes modifiables. `kanban-auto-promote` reste verrouillée et son activation produit `409`; ne contournez pas une étape de confirmation humaine en tentant de l'activer.
+
+## Exécution et historique
+
+`POST /workflows/workflow-definitions/{definition_id}/run` exige `workflows:write` et une clé d'idempotence. Sa réponse `202` contient `workflow` et `run`. Consultez `/workflows/history` pour l'historique et `/workflows/stats` pour les compteurs. Un run peut être `pending`, `running`, `completed`, `failed` ou `cancelled`.
+
+L'historique rassemble deux formes : les jobs système avec `workflow_source=system` et les runs personnalisés avec `workflow_source=custom`. Les propriétés spécifiques à une forme ne sont pas garanties dans l'autre. Les objets `result` dépendent du preset ou du type de job.
+
+Une réponse d'acceptation ne prouve pas l'achèvement de ses effets. Vérifiez le statut, le résultat puis les ressources concernées; une exécution en échec ne doit pas être qualifiée de réussite à partir du seul HTTP initial.
+
+## Recommandations
+
+`POST /workflows/recommendations/preview` calcule une prévisualisation sans persister de recommandation et demande `workflows:read`. Les identifiants `preview-*` sont temporaires : ils ne sont pas les UUID utilisés par les routes de décision.
+
+Pour agir sur une prévisualisation, matérialisez la recommandation avec `/workflows/recommendations/materialize`, puis utilisez l'UUID retourné pour accepter, rejeter, reporter ou créer un workflow. Ces mutations demandent `workflows:write` et l'idempotence indiquée dans leur référence.
+
+Le périmètre est `entity`, `fund`, `spv` ou `operation`; fournissez l'identifiant de périmètre lorsque la route l'exige. Les priorités sont `critical`, `recommended` et `optional`. Les preuves, le préremplissage et les indicateurs d'impact varient selon la recommandation.
+
+Accepter une recommandation et créer un workflow sont des actions distinctes. L'endpoint `create-workflow` instancie la définition personnalisée : ne supposez pas qu'un simple `accept` la crée.
+
+## Extraction documentaire IA
+
+`POST /workflows/ai-extraction-jobs` place un document dans la file d'extraction gouvernée. Cette route demande **`ai_extraction:write`**, tandis que la liste et le détail des jobs demandent **`ai_extraction:read`**.
+
+Conservez l'identifiant du job retourné et consultez `GET /workflows/ai-extraction-jobs/{job_id}`. Les états possibles du job système sont `pending`, `running`, `completed`, `failed`, `dead_letter` et `cancelled`. Le détail peut contenir des compteurs de suggestions, un récit, une résolution d'opération, un résultat public ou une erreur.
+
+Un job `completed` signifie que le traitement a terminé; il ne garantit pas que toute suggestion a été appliquée ni que toute donnée extraite est correcte. Les confirmations, droits et règles de validation restent applicables aux résultats.

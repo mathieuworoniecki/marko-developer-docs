@@ -1,0 +1,24 @@
+---
+title: "Taxonomies"
+description: "Utiliser les codes visibles de l'entité et gérer les options créées par les imports externes."
+---
+
+## Catalogue visible
+
+`GET /taxonomies?dimension=...` avec `operations:read` fournit les options visibles de l'entité. Les dimensions couvrent notamment le statut, le type d'investissement, le type d'opération, la classe et sous-classe d'actif, les statuts internes ou opérationnels et les catégories de notes. Utilisez les valeurs exactes de `dimension` indiquées dans la référence.
+
+Conservez le **code**, distinct du libellé affiché. Les options peuvent dépendre de l'entité et des décisions de son administrateur. Pour afficher une valeur courante masquée sans la proposer à une nouvelle sélection, fournissez `current_code` à la route du catalogue.
+
+`GET /operations/taxonomy` est un endpoint legacy limité au socle canonique historique. Il ne décrit pas toutes les valeurs propres à l'entité. Pour construire un formulaire ou vérifier les options visibles, utilisez `/taxonomies`.
+
+## Upserts externes
+
+Les upserts externes d'opérations et de notes peuvent transformer une valeur inconnue en option visible propre à l'entité. La réponse expose `taxonomy_additions` pour signaler ces créations. Le segment généré d'un code `custom__...` est imprévisible : conservez **le code renvoyé**, puis réutilisez-le.
+
+Cette règle ne signifie pas que toutes les routes de mise à jour créent des catégories. Respectez le contrat de chaque endpoint. Si votre intégration doit utiliser uniquement les choix validés par l'administrateur, chargez le catalogue visible avant l'envoi et empêchez les valeurs inconnues côté client.
+
+## Valeurs absentes et relations
+
+Respectez les champs facultatifs et leurs types; n'inventez pas un statut ou une classe d'actif pour compléter un exemple. Les champs `statut_operationnel` peuvent être une liste. La sous-classe doit rester cohérente avec la classe d'actif selon les règles métier de l'entité.
+
+Après un upsert, relisez la ressource ou exploitez la ressource retournée pour connaître les valeurs effectivement retenues. La référence des [champs métier](/pagination-and-data) complète les taxonomies pour les propriétés de `data`.

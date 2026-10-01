@@ -1,0 +1,45 @@
+---
+title: "Pagination et données"
+description: "Lire toutes les pages, utiliser les filtres exacts et interpréter les types métier."
+---
+
+## Deux formes de pagination
+
+La référence de chaque route indique ses valeurs par défaut, bornes et filtres. Les limites ne sont pas uniformes : n'appliquez pas une valeur globale à toutes les ressources.
+
+| Forme | Lecture |
+| --- | --- |
+| Objet avec `items`, `total`, `limit`, `offset` | Parcourir `items`, puis augmenter `offset` du nombre d'éléments reçus jusqu'à atteindre `total` ou une page vide. |
+| Tableau JSON | Lire le tableau et avancer avec `offset` jusqu'à une page plus courte que `limit` ou vide. Les listes fonds et SPV exposent aussi `X-Marko-Limit`, `X-Marko-Offset` et `X-Marko-Has-More`; la liste opérations n'expose pas ces headers. |
+| Paramètre `page` | Respecter le numéro de première page et la limite de la route; ne pas mélanger `page` et `offset`. |
+
+Un parcours paginé n'est pas un instantané transactionnel : des modifications peuvent intervenir entre deux lectures. Conservez les identifiants, dédupliquez vos résultats et effectuez une nouvelle lecture si votre traitement dépend d'un état courant.
+
+```bash
+curl --fail-with-body --get "$MARKO_API_BASE_URL/operations" \
+  -H "Authorization: Bearer $MARKO_ACCESS_TOKEN" \
+  --data-urlencode "limit=20" \
+  --data-urlencode "offset=0"
+```
+
+`MARKO_API_BASE_URL` contient le préfixe `/v1`, par exemple `https://partner-api.marko.fr/v1`.
+
+## Recherche et filtres
+
+`GET /operations` et `GET /spvs` proposent `name` pour une correspondance exacte insensible à la casse et aux espaces périphériques. `GET /operateurs` distingue `name` exact et `search` partiel; ces deux filtres sont mutuellement exclusifs. Une recherche par nom avant création ne garantit pas l'unicité concurrente. Pour une synchronisation, préférez les [identifiants externes](/writes-and-idempotency).
+
+Les filtres de statut utilisent les codes retournés par les [taxonomies](/taxonomies-guide). Le filtre `status=active` de la liste opérations est un raccourci documenté vers les cinq statuts canoniques actifs. Ne traduisez pas un libellé d'interface pour fabriquer un code.
+
+Encodez les valeurs des paramètres et segments d'URL avec la bibliothèque HTTP utilisée. Pour les paramètres booléens, utilisez `true` ou `false`; la référence enrichie indique leur type réel.
+
+## Identifiants, dates et valeurs
+
+Les UUID MARKO et les identifiants externes sont deux valeurs différentes. Les identifiants utilisateur peuvent être des chaînes non UUID. Le schéma de la route fait autorité.
+
+Les dates sont en ISO 8601. Une date métier `YYYY-MM-DD` ne porte pas de fuseau; une date-heure telle que `2026-10-01T10:00:00Z` en porte un. Les notes externes ont des règles de normalisation spécifiques décrites dans [Imports et notes](/imports-and-notes).
+
+Un champ absent et un champ `null` ne sont pas interchangeables dans une mutation. N'envoyez que les propriétés que vous souhaitez traiter et respectez le modèle d'update de la route. Certains montants décimaux sont sérialisés en chaîne pour préserver leur précision; respectez le type de réponse, sans convertir systématiquement en flottant.
+
+## Champs métier extensibles
+
+`data`, certains résumés, configurations de workflow et métadonnées sont des objets JSON ouverts par conception. Pour les champs métier des opérations, interrogez `GET /field-definitions` ou `GET /field-definitions/by-key/{field_key}` : le référentiel décrit les clés et leurs métadonnées métier. Vérifiez l'unité, le type et la disponibilité d'un champ avant de l'écrire; ne déduisez pas une unité monétaire ou un pourcentage de son nom.

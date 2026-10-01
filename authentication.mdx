@@ -31,4 +31,12 @@ La réponse inclut `access_token`, `expires_in`, `expires_at` et `environment`. 
 Authorization: Bearer YOUR_ACCESS_TOKEN
 ```
 
-Une clé peut être limitée par scopes, routes et adresses IP. La [référence API](https://partner-api.marko.fr/v1/openapi.json) indique le scope nécessaire pour chaque opération via `x-marko-required-scope`. L'administrateur de l'entité peut exporter une version du contrat filtrée selon une clé donnée.
+Une clé peut être limitée par scopes, routes et adresses IP. Le scope nécessaire figure dans le texte de chaque page API et dans `x-marko-required-scope` de l'[OpenAPI enrichi](https://raw.githubusercontent.com/mathieuworoniecki/marko-developer-docs/main/openapi.json). L'administrateur de l'entité peut exporter une version du contrat filtrée selon une clé donnée. Les routes déléguées exigent aussi les [capacités et headers correspondants](/scopes-and-delegation).
+
+## Contraintes de l'échange
+
+`key_id` contient 4 à 24 lettres minuscules ou chiffres. Utilisez l'identifiant réel de la clé; les marqueurs `YOUR_PUBLIC_KEY_ID` des exemples doivent être remplacés. `nonce` contient 16 à 128 lettres ASCII, chiffres, `_` ou `-`. La signature contient exactement 64 caractères hexadécimaux et `timestamp` est un entier positif ou nul.
+
+Synchronisez l'horloge de votre serveur. La fenêtre d'horloge et la durée du bearer sont configurables; utilisez `expires_in` et `expires_at` retournés plutôt qu'une durée codée en dur. Évitez de refaire un échange pour chaque appel : réutilisez le bearer jusqu'à son renouvellement, en coordonnant ce renouvellement si plusieurs workers partagent la clé.
+
+Après un `401`, vérifiez d'abord que le bearer vient du même hôte et contexte, puis refaites au besoin un échange avec un **nouveau nonce**. Ne renvoyez pas aveuglément le payload signé d'un échange déjà consommé. Pour une écriture métier, le renouvellement du bearer ne change ni son intention ni sa clé d'idempotence.
