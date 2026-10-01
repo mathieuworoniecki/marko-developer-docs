@@ -1,13 +1,23 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "theme": "mint",
+  "theme": "maple",
   "name": "MARKO Developers",
   "colors": {
-    "primary": "#A89050",
-    "light": "#B99E53",
-    "dark": "#D4B96A"
+    "primary": "#087E8B",
+    "light": "#76E7F4",
+    "dark": "#087E8B"
+  },
+  "logo": {
+    "light": "/logo/light.svg",
+    "dark": "/logo/dark.svg"
   },
   "favicon": "/favicon.svg",
+  "appearance": {
+    "default": "light"
+  },
+  "search": {
+    "prompt": "Rechercher…"
+  },
   "navigation": {
     "tabs": [
       {

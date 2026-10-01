@@ -1,21 +1,39 @@
 ---
-title: "API partenaire MARKO"
-description: "Intégrez vos applications avec l'API partenaire MARKO v1."
+title: "Développer avec MARKO"
+sidebarTitle: "Vue d'ensemble"
+description: "Les guides et la référence pour intégrer l'API partenaire MARKO."
+mode: "wide"
 ---
 
-L'API partenaire MARKO permet à un service externe de consulter les données de son entité et d'effectuer les opérations d'écriture autorisées par sa clé. Chaque appel métier utilise un bearer obtenu par un échange signé côté serveur.
+Connectez votre application aux données de votre entité et automatisez les opérations autorisées par votre clé API.
 
-**URL de production :** `https://partner-api.marko.fr/v1`
+<Columns cols={2}>
+  <Card title="Premier appel" icon="terminal" href="/quickstart" arrow>
+    Obtenez une clé et envoyez votre première requête avec un exemple Python.
+  </Card>
+  <Card title="Authentification" icon="key" href="/authentication" arrow>
+    Signez l'échange HMAC et utilisez le bearer pour vos appels API.
+  </Card>
+  <Card title="Référence API" icon="code" href="/api-reference/auth/obtenir-un-bearer-court" arrow>
+    Explorez les endpoints, leurs paramètres et les réponses.
+  </Card>
+  <Card title="Erreurs et reprises" icon="arrows-rotate" href="/errors-and-retries" arrow>
+    Gérez les erreurs, la pagination et les requêtes idempotentes.
+  </Card>
+</Columns>
 
-**Contrat machine :** [OpenAPI v1](https://partner-api.marko.fr/v1/openapi.json)
+## Votre intégration
 
-## Commencer
+L'API utilise un bearer obtenu par un échange signé côté serveur. Les routes accessibles dépendent des scopes et des éventuelles restrictions de votre clé.
 
-1. [Obtenir une clé et effectuer un premier appel](/quickstart).
-2. [Comprendre la signature HMAC et le bearer](/authentication).
-3. [Choisir l'environnement de test ou de production](/environments).
-4. [Gérer les erreurs et les reprises](/errors-and-retries).
+**URL de production**
 
-L'onglet **Référence API** présente les routes stables publiées dans le contrat OpenAPI. Les routes accessibles à une clé précise dépendent de ses scopes et, le cas échéant, de ses restrictions de routes. Un administrateur de l'entité peut exporter depuis MARKO un contrat OpenAPI ou une collection Postman filtrés pour cette clé.
+```text
+https://partner-api.marko.fr/v1
+```
 
-Chaque page peut être copiée en Markdown ou ouverte dans Claude ou ChatGPT depuis son menu contextuel. Les agents peuvent aussi lire l'index `/llms.txt` et la version Markdown de chaque page.
+Pour préparer vos tests, consultez le guide des [environnements](/environments). Un administrateur de l'entité peut exporter depuis MARKO un contrat OpenAPI ou une collection Postman filtrés pour votre clé.
+
+## Développer avec une IA
+
+Le menu de chaque page permet de copier son contenu en Markdown ou de l'ouvrir dans Claude ou ChatGPT. Donnez à votre agent l'[index de la documentation](https://developers.marko.fr/llms.txt) et le [contrat OpenAPI v1](https://partner-api.marko.fr/v1/openapi.json) pour l'aider à construire votre intégration.
