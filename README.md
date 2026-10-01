@@ -18,7 +18,9 @@ Dans le projet Mintlify qui dessert `developers.marko.fr`, connecter ce dépôt
 GitHub et choisir la branche `main` comme branche de publication. Les fichiers
 Mintlify se trouvent à la racine du dépôt. Après le premier déploiement,
 contrôler la page d'accueil, la section « Référence API » du menu latéral, la copie Markdown et
-`https://developers.marko.fr/llms.txt`.
+`https://developers.marko.fr/llms.txt?v=20261001`. Les liens utilisent une version
+pour éviter un ancien index conservé par le CDN après publication. Actualisez
+cette version lors d'un changement de navigation si le cache reste ancien.
 
 ## Vérification locale
 
