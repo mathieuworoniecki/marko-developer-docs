@@ -1,0 +1,20 @@
+---
+title: "Erreurs et reprises"
+description: "Interprétez les erreurs HTTP et utilisez les clés d'idempotence sur les écritures concernées."
+---
+
+Les erreurs documentées dans le contrat public utilisent `application/problem+json`. Fournissez un en-tête `X-Request-ID` pour corréler vos appels avec les journaux MARKO ; le corps d'erreur peut également contenir `request_id`.
+
+| Statut | Sens | Action |
+| --- | --- | --- |
+| `401` | Échange ou bearer invalide ou expiré | Vérifier la signature, l'horloge et le bearer ; refaire un échange avec un nouveau nonce si nécessaire. |
+| `403` | Scope, route ou IP non autorisé | Vérifier les droits de la clé avec l'administrateur de l'entité. |
+| `409` | Clé d'idempotence réutilisée avec un autre contenu | Corriger l'appel ; ne pas recycler cette clé pour une mutation différente. |
+| `422` | Paramètre ou corps invalide | Corriger la requête selon l'endpoint. |
+| `428` | `Idempotency-Key` requis mais absent | Ajouter une clé d'idempotence à cette écriture. |
+| `429` | Limite de débit atteinte | Respecter `Retry-After` quand il est présent. |
+| `500` | Erreur serveur | Réessayer prudemment ; conserver la même clé d'idempotence pour une écriture déjà soumise. |
+
+Les opérations d'écriture qui exigent `Idempotency-Key` l'indiquent dans leur page de référence. Générez une clé unique pour chaque mutation logique et réutilisez **la même clé et le même contenu** lors d'une reprise après une réponse incertaine. N'envoyez pas une mutation une seconde fois avec une nouvelle clé tant que vous n'avez pas vérifié son résultat.
+
+Les règles de pagination dépendent de l'endpoint. Par exemple, `GET /operations` accepte `limit` et `offset` ; consultez la référence de la route appelée pour ses paramètres exacts.

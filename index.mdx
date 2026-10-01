@@ -1,0 +1,21 @@
+---
+title: "API partenaire MARKO"
+description: "Intégrez vos applications avec l'API partenaire MARKO v1."
+---
+
+L'API partenaire MARKO permet à un service externe de consulter les données de son entité et d'effectuer les opérations d'écriture autorisées par sa clé. Chaque appel métier utilise un bearer obtenu par un échange signé côté serveur.
+
+**URL de production :** `https://partner-api.marko.fr/v1`
+
+**Contrat machine :** [OpenAPI v1](https://partner-api.marko.fr/v1/openapi.json)
+
+## Commencer
+
+1. [Obtenir une clé et effectuer un premier appel](/quickstart).
+2. [Comprendre la signature HMAC et le bearer](/authentication).
+3. [Choisir l'environnement de test ou de production](/environments).
+4. [Gérer les erreurs et les reprises](/errors-and-retries).
+
+L'onglet **Référence API** présente les routes stables publiées dans le contrat OpenAPI. Les routes accessibles à une clé précise dépendent de ses scopes et, le cas échéant, de ses restrictions de routes. Un administrateur de l'entité peut exporter depuis MARKO un contrat OpenAPI ou une collection Postman filtrés pour cette clé.
+
+Chaque page peut être copiée en Markdown ou ouverte dans Claude ou ChatGPT depuis son menu contextuel. Les agents peuvent aussi lire l'index `/llms.txt` et la version Markdown de chaque page.

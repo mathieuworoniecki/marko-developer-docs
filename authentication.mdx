@@ -1,0 +1,34 @@
+---
+title: "Authentification"
+description: "Signez l'échange HMAC-SHA256 et utilisez le bearer renvoyé par MARKO."
+---
+
+L'API utilise deux éléments distincts : une **clé API** avec un identifiant public `key_id` et un secret, puis un **bearer de courte durée** pour les routes métier. Le secret sert uniquement à signer `POST /v1/auth/token` ; il ne doit pas être transmis aux routes métier ni utilisé dans un navigateur.
+
+## Signature de l'échange
+
+Construisez les quatre lignes suivantes avec des sauts de ligne `\n`, sans saut de ligne final :
+
+```text
+MARKO-EXTERNAL-API-TOKEN-V1
+{key_id}
+{timestamp}
+{nonce}
+```
+
+`timestamp` est l'heure Unix en secondes. Générez un `nonce` différent pour chaque échange. Calculez la signature HMAC-SHA256 de ce message avec le secret API et encodez-la en hexadécimal. Envoyez ensuite :
+
+```http
+POST /v1/auth/token HTTP/1.1
+Content-Type: application/json
+
+{"key_id":"YOUR_PUBLIC_KEY_ID","timestamp":1760000000,"nonce":"UNIQUE_NONCE","signature":"HEX_HMAC_SHA256"}
+```
+
+La réponse inclut `access_token`, `expires_in`, `expires_at` et `environment`. Renouvelez le bearer après son expiration en créant un nouvel échange signé. Pour les autres routes, utilisez :
+
+```http
+Authorization: Bearer YOUR_ACCESS_TOKEN
+```
+
+Une clé peut être limitée par scopes, routes et adresses IP. La [référence API](https://partner-api.marko.fr/v1/openapi.json) indique le scope nécessaire pour chaque opération via `x-marko-required-scope`. L'administrateur de l'entité peut exporter une version du contrat filtrée selon une clé donnée.

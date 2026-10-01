@@ -1,0 +1,13 @@
+---
+title: "Environnements"
+description: "Distinguez les hôtes de préproduction et production des clés sandbox et live."
+---
+
+| Usage | Base URL |
+| --- | --- |
+| Préproduction de l'infrastructure MARKO | `https://partner-api-preprod.marko.fr/v1` |
+| Production | `https://partner-api.marko.fr/v1` |
+
+Les clés d'API portent également un environnement `sandbox` ou `live`, choisi lors de leur création dans MARKO. **Le choix de l'hôte et celui de la clé sont deux décisions distinctes.** Utilisez les identifiants fournis pour l'environnement et l'entité visés ; la réponse de `POST /v1/auth/token` indique l'environnement associé à la clé.
+
+Le contrat public de production est disponible sur [OpenAPI](https://partner-api.marko.fr/v1/openapi.json). Il présente les opérations stables. L'administrateur de l'entité peut télécharger depuis la section **API** un contrat OpenAPI ou une collection Postman adaptés aux scopes et aux routes autorisés pour sa clé.

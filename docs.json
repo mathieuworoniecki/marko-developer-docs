@@ -1,0 +1,40 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "mint",
+  "name": "MARKO Developers",
+  "colors": {
+    "primary": "#A89050",
+    "light": "#B99E53",
+    "dark": "#D4B96A"
+  },
+  "favicon": "/favicon.svg",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Guides",
+        "groups": [
+          {
+            "group": "Démarrer",
+            "pages": ["index", "quickstart", "authentication"]
+          },
+          {
+            "group": "Intégrer",
+            "pages": ["environments", "errors-and-retries"]
+          }
+        ]
+      },
+      {
+        "tab": "Référence API",
+        "openapi": "https://partner-api.marko.fr/v1/openapi.json"
+      }
+    ]
+  },
+  "api": {
+    "playground": {
+      "display": "none"
+    }
+  },
+  "contextual": {
+    "options": ["copy", "view", "chatgpt", "claude"]
+  }
+}
