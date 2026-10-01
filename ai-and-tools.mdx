@@ -38,6 +38,8 @@ Le téléchargement complet est un fichier JSON dont le champ `markdown` contien
 
 ## SDK et client généré
 
+Pour démarrer avec un client JSON, utiliser les [exemples Python, Node.js et PHP](/code-examples). Ils prennent en charge la signature HMAC et le renouvellement du bearer.
+
 Cette documentation ne fournit pas de SDK officiel MARKO. Vous pouvez générer un client à partir d'OpenAPI avec un générateur compatible OpenAPI 3.1, puis ajouter l'échange HMAC et la gestion des reprises. Le client HTTP doit prendre en charge les timeouts, `application/problem+json`, les fichiers multipart et les réponses binaires.
 
 Conservez les secrets dans l'environnement du serveur ou un gestionnaire de secrets. Les exemples sont synthétiques : remplacez leurs identifiants par ceux de votre contexte, sans les traiter comme des ressources de test disponibles.
