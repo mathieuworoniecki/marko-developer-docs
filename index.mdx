@@ -7,20 +7,20 @@ mode: "wide"
 
 import { CopyDocumentation } from "/snippets/CopyDocumentation.jsx"
 
-Connectez votre application aux données de votre entité et automatisez les opérations autorisées par votre clé API.
+L'API partenaire permet de lire et synchroniser les données de votre entité MARKO. Commencez par un appel en lecture, puis choisissez le parcours correspondant à votre intégration.
 
 <Columns cols={2}>
   <Card title="Premier appel" icon="terminal" href="/quickstart" arrow>
-    Obtenez une clé et envoyez votre première requête avec un exemple Python.
+    Obtenez un bearer et lisez une page d'opérations.
   </Card>
-  <Card title="Authentification" icon="key" href="/authentication" arrow>
-    Signez l'échange HMAC et utilisez le bearer pour vos appels API.
+  <Card title="CRM vers MARKO" icon="arrows-rotate" href="/tutorials/crm-sync" arrow>
+    Synchronisez une opération et ses notes historiques.
   </Card>
-  <Card title="Référence API" icon="code" href="/api-reference/auth/obtenir-un-bearer-court" arrow>
-    Explorez les endpoints, leurs paramètres et les réponses.
+  <Card title="Document et extraction IA" icon="file" href="/tutorials/document-extraction" arrow>
+    Envoyez un fichier et suivez son traitement.
   </Card>
-  <Card title="Erreurs et reprises" icon="arrows-rotate" href="/errors-and-retries" arrow>
-    Gérez les erreurs, la pagination et les requêtes idempotentes.
+  <Card title="Référence API" icon="code" href="/resources" arrow>
+    Trouvez les routes, leurs champs et leurs scopes.
   </Card>
 </Columns>
 
@@ -36,8 +36,10 @@ https://partner-api.marko.fr/v1
 
 Pour préparer vos tests, consultez le guide des [environnements](/environments). Un administrateur de l'entité peut exporter depuis MARKO un contrat OpenAPI ou une collection Postman filtrés pour votre clé.
 
+Les [exemples Python, Node.js et PHP](/code-examples) prennent en charge les appels JSON. Le guide [Comprendre les ressources](/concepts) explique les liens entre fonds, SPV, opérations et documents. Pour plusieurs opérations à la fois, suivre [Import par lot](/tutorials/batch-import).
+
 ## Développer avec une IA
 
 <CopyDocumentation />
 
-Le menu de chaque page permet aussi de copier son contenu en Markdown ou de l'ouvrir dans Claude ou ChatGPT. Donnez à votre agent l'[index de la documentation](https://developers.marko.fr/llms.txt?v=20261001) et le [contrat OpenAPI enrichi](https://raw.githubusercontent.com/mathieuworoniecki/marko-developer-docs/main/openapi.json). Le guide [IA et outils de développement](/ai-and-tools) présente les formats disponibles.
+Le menu de chaque page permet aussi de copier son contenu en Markdown ou de l'ouvrir dans Claude ou ChatGPT. Pour un contexte plus court, le guide [IA et outils de développement](/ai-and-tools) permet de copier une famille API ou un tutoriel avec ses contrats. L'[index de la documentation](https://developers.marko.fr/llms.txt?v=20261001-2) et le [contrat OpenAPI enrichi](https://raw.githubusercontent.com/mathieuworoniecki/marko-developer-docs/main/openapi.json) sont accessibles directement.

@@ -11,11 +11,17 @@ import { CopyDocumentation } from "/snippets/CopyDocumentation.jsx"
 
 Le fichier regroupe les guides et le contrat OpenAPI enrichi des 158 opérations stables, avec ses schémas référencés. Il est volumineux : pour une tâche ciblée, fournir seulement les pages utiles évite de saturer le contexte de votre assistant.
 
+## Copier une famille API ou un tutoriel
+
+<CopyDocumentation chooseFamily />
+
+La sélection contient les guides utiles, l'authentification, les routes du périmètre choisi et tous leurs schémas référencés. Un tutoriel inclut les contrats des appels qu'il utilise. Le texte copié est autonome : aucun schéma nécessaire n'est remplacé par un lien vers une autre partie du contrat.
+
 ## Copier une page
 
 Le menu **Copy page** de chaque page permet de copier son Markdown, voir la version texte et l'ouvrir dans ChatGPT ou Claude. Les pages API contiennent le scope requis dans leur texte; les extensions `x-marko-*` du contrat ne sont pas le seul endroit où lire cette information.
 
-L'[index des pages](https://developers.marko.fr/llms.txt?v=20261001) permet à un agent de découvrir la documentation. Les pages sont également disponibles en Markdown en ajoutant `.md` à leur URL. Le [texte agrégé du site](https://developers.marko.fr/llms-full.txt) rassemble les guides et les descriptions des routes. Pour obtenir tous les schémas de requête et de réponse, utilisez la copie complète ci-dessus, le contrat OpenAPI enrichi ou les pages API individuelles.
+L'[index des pages](https://developers.marko.fr/llms.txt?v=20261001-2) permet à un agent de découvrir la documentation. Les pages sont également disponibles en Markdown en ajoutant `.md` à leur URL. Le [texte agrégé du site](https://developers.marko.fr/llms-full.txt) rassemble les guides et les descriptions des routes. Pour obtenir tous les schémas de requête et de réponse, utilisez la copie complète ci-dessus, le contrat OpenAPI enrichi ou les pages API individuelles.
 
 ## Contrats machine
 

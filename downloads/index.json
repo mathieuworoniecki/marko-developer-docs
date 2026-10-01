@@ -1,0 +1,150 @@
+{
+  "format": "marko-documentation-index/v1",
+  "topics": [
+    {
+      "id": "marko-documentation",
+      "title": "Toute la documentation",
+      "kind": "all"
+    },
+    {
+      "id": "auth",
+      "title": "Authentification",
+      "kind": "family"
+    },
+    {
+      "id": "entity",
+      "title": "Entité",
+      "kind": "family"
+    },
+    {
+      "id": "portfolio",
+      "title": "Portefeuille",
+      "kind": "family"
+    },
+    {
+      "id": "deals",
+      "title": "Deals",
+      "kind": "family"
+    },
+    {
+      "id": "fonds",
+      "title": "Fonds",
+      "kind": "family"
+    },
+    {
+      "id": "spvs",
+      "title": "SPV",
+      "kind": "family"
+    },
+    {
+      "id": "operations",
+      "title": "Opérations",
+      "kind": "family"
+    },
+    {
+      "id": "taxonomies",
+      "title": "Taxonomies",
+      "kind": "family"
+    },
+    {
+      "id": "import-jobs",
+      "title": "Imports par lot",
+      "kind": "family"
+    },
+    {
+      "id": "comments",
+      "title": "Commentaires",
+      "kind": "family"
+    },
+    {
+      "id": "documents",
+      "title": "Documents",
+      "kind": "family"
+    },
+    {
+      "id": "users",
+      "title": "Utilisateurs",
+      "kind": "family"
+    },
+    {
+      "id": "settings",
+      "title": "Paramètres",
+      "kind": "family"
+    },
+    {
+      "id": "rcci",
+      "title": "Conformité RCCI",
+      "kind": "family"
+    },
+    {
+      "id": "field-definitions",
+      "title": "Champs métier",
+      "kind": "family"
+    },
+    {
+      "id": "search",
+      "title": "Recherche",
+      "kind": "family"
+    },
+    {
+      "id": "operateurs",
+      "title": "Opérateurs",
+      "kind": "family"
+    },
+    {
+      "id": "alerts",
+      "title": "Alertes",
+      "kind": "family"
+    },
+    {
+      "id": "notifications",
+      "title": "Notifications",
+      "kind": "family"
+    },
+    {
+      "id": "calendar",
+      "title": "Calendrier",
+      "kind": "family"
+    },
+    {
+      "id": "enrichment",
+      "title": "Enrichissement SIREN",
+      "kind": "family"
+    },
+    {
+      "id": "reports",
+      "title": "Exports",
+      "kind": "family"
+    },
+    {
+      "id": "reporting",
+      "title": "Templates de reporting",
+      "kind": "family"
+    },
+    {
+      "id": "workflows",
+      "title": "Workflows et extraction IA",
+      "kind": "family"
+    },
+    {
+      "id": "tasks",
+      "title": "Tâches",
+      "kind": "family"
+    },
+    {
+      "id": "crm-sync",
+      "title": "CRM vers MARKO",
+      "kind": "tutorial"
+    },
+    {
+      "id": "batch-import",
+      "title": "Import par lot",
+      "kind": "tutorial"
+    },
+    {
+      "id": "document-extraction",
+      "title": "Document et extraction IA",
+      "kind": "tutorial"
+    }
+  ]
+}

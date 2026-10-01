@@ -1,0 +1,24 @@
+---
+title: "Historique de la documentation"
+sidebarTitle: "Historique des changements"
+description: "Suivre les changements de référence et savoir à quelle version de l'API ils se rapportent."
+---
+
+## 1er octobre 2026
+
+- Référence des 158 routes publiques stables, avec les corps de requête, réponses et paramètres du backend documenté.
+- Descriptions des champs métier, unités des KPI et distinction des cycles de statut.
+- Tutoriels de synchronisation CRM, d'import par lot et d'upload suivi d'une extraction IA.
+- Exemples Python, Node.js et PHP pour l'échange HMAC et les appels JSON.
+- Copie de la documentation complète, d'une famille API ou d'un tutoriel avec les contrats nécessaires.
+- Familles API nommées en français dans le menu, avec conservation des chemins des pages.
+
+Cette mise à jour concerne la documentation et ses exemples. Elle n'annonce pas un déploiement ou une nouvelle fonction de l'API.
+
+## Version du contrat
+
+L'[OpenAPI enrichi](https://raw.githubusercontent.com/mathieuworoniecki/marko-developer-docs/main/openapi.json) porte une propriété `x-documentation-provenance`. Elle indique le SHA du backend utilisé pour les modèles et l'empreinte du catalogue public au moment de la vérification.
+
+La référence couvre les routes stables du catalogue public. Les routes bêta et l'administration interne n'y figurent pas. Les accès réels dépendent toujours de la clé, de son environnement, de ses scopes et de ses restrictions.
+
+Une évolution du catalogue ou du backend exige une revue des contrats avant republication. Les guides et exemples restent des outils d'intégration; une requête synthétique ne certifie pas un résultat métier dans votre entité.

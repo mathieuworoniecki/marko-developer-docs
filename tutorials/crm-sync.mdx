@@ -1,0 +1,71 @@
+---
+title: "Synchroniser une opération depuis un CRM"
+sidebarTitle: "CRM vers MARKO"
+description: "Créer ou mettre à jour une opération, conserver son UUID et importer une note historique."
+---
+
+import { CopyDocumentation } from "/snippets/CopyDocumentation.jsx"
+
+<CopyDocumentation topic="crm-sync" label="Copier ce tutoriel et ses routes API" />
+
+À la fin de ce parcours, votre application possède l'UUID MARKO d'une opération et sait relire la note envoyée. Les noms et références ci-dessous sont des exemples : choisissez vos références réelles avant l'exécution.
+
+## Préparer l'accès
+
+La clé doit autoriser `operations:write` et `operations:read`, ainsi que les routes utilisées. Obtenir un bearer avec le [premier appel](/quickstart), puis définir `MARKO_API_BASE_URL` et `MARKO_ACCESS_TOKEN` dans le terminal.
+
+Utiliser un environnement de test pour une première écriture. Garder l'identifiant externe de votre CRM, par exemple `crm-operation-001`, et une clé d'idempotence par révision à synchroniser.
+
+## 1. Envoyer l'opération
+
+```bash
+curl --fail-with-body --request PUT \
+  "$MARKO_API_BASE_URL/operations/external/crm-operation-001" \
+  --header "Authorization: Bearer $MARKO_ACCESS_TOKEN" \
+  --header "Content-Type: application/json" \
+  --header "Idempotency-Key: crm-operation-001-revision-01" \
+  --data '{"name":"Opération CRM de démonstration"}'
+```
+
+Le corps minimal exige `name`. Ajouter `spv_id`, `lead_operateur_id` ou des données métier seulement lorsque vous connaissez leurs valeurs dans l'entité. Une création répond `201`; un résultat déjà associé peut répondre `200`.
+
+La réponse contient `external_id`, `marko_id`, `outcome` et `resource`. Enregistrer `marko_id` dans le CRM. Un `outcome=noop` signifie que les valeurs utiles sont déjà présentes, pas que l'identifiant est absent.
+
+Pour renseigner une taxonomie, consulter `GET /taxonomies?dimension=...` avant l'envoi. Conserver les codes renvoyés dans `taxonomy_additions` lorsqu'une option propre à l'entité est créée.
+
+## 2. Relire l'opération
+
+```bash
+curl --fail-with-body \
+  "$MARKO_API_BASE_URL/operations/external/crm-operation-001" \
+  --header "Authorization: Bearer $MARKO_ACCESS_TOKEN"
+```
+
+Vérifier que l'UUID retourné correspond à celui enregistré et que le nom attendu apparaît. Pour les routes qui demandent un UUID, utiliser ce `marko_id`.
+
+## 3. Importer une note datée
+
+```bash
+curl --fail-with-body --request PUT \
+  "$MARKO_API_BASE_URL/operations/external/crm-operation-001/notes/external/crm-note-001" \
+  --header "Authorization: Bearer $MARKO_ACCESS_TOKEN" \
+  --header "Content-Type: application/json" \
+  --header "Idempotency-Key: crm-note-001-revision-01" \
+  --data '{
+    "date":"2026-10-01T10:00:00Z",
+    "text":"Premier échange enregistré dans le CRM.",
+    "category":"libre",
+    "source_created_at":"2026-10-01T10:00:00Z",
+    "source_updated_at":"2026-10-01T10:00:00Z"
+  }'
+```
+
+Enregistrer l'UUID de la note, puis relire la même URL avec `GET`. `date` est la date métier de la note. Les dates `source_*` décrivent sa création et sa révision dans le CRM.
+
+## 4. Envoyer une nouvelle révision
+
+Pour une modification réelle, garder `crm-operation-001` et utiliser une nouvelle clé d'idempotence, par exemple `crm-operation-001-revision-02`. Pour corriger une note déjà versionnée, transmettre aussi un `source_updated_at` strictement plus récent.
+
+Après un timeout, relire la cible avant de répéter l'écriture. Si la reprise reste nécessaire, garder la clé et le contenu de la tentative initiale. Un `409` exige de comparer l'état actuel, la version source et l'intention envoyée.
+
+Les [exemples de clients JSON](/code-examples) permettent d'effectuer ces appels en Python, Node.js ou PHP sans recopier l'échange HMAC.

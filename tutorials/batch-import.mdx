@@ -1,0 +1,80 @@
+---
+title: "Importer un lot et traiter ses résultats"
+sidebarTitle: "Import par lot"
+description: "Envoyer un lot, suivre le job, paginer ses résultats et choisir la bonne reprise."
+---
+
+import { CopyDocumentation } from "/snippets/CopyDocumentation.jsx"
+
+<CopyDocumentation topic="batch-import" label="Copier ce tutoriel et ses routes API" />
+
+Ce parcours utilise `operations:write` pour l'envoi et les actions sur le job, et `operations:read` pour son suivi. Obtenir un bearer avant les appels.
+
+## 1. Préparer le lot
+
+Créer un fichier `lot.json` avec les références de votre système. Ce petit exemple ne choisit aucune taxonomie propre à votre entité :
+
+```json
+{
+  "operations": [
+    {"external_id":"crm-lot-001", "name":"Première opération"},
+    {"external_id":"crm-lot-002", "name":"Seconde opération"}
+  ]
+}
+```
+
+Un lot accepte jusqu'à 500 opérations, 10 000 notes et 20 Mio d'enveloppe JSON normalisée. Les identifiants externes doivent rester stables entre les lots et les reprises.
+
+## 2. Envoyer et conserver le job
+
+```bash
+curl --fail-with-body --request POST \
+  "$MARKO_API_BASE_URL/operations/batch" \
+  --header "Authorization: Bearer $MARKO_ACCESS_TOKEN" \
+  --header "Content-Type: application/json" \
+  --header "Idempotency-Key: crm-lot-20261001-01" \
+  --data-binary @lot.json
+```
+
+La réponse `202` signifie que le lot a été accepté. Enregistrer `job_id` durablement avant d'afficher l'import comme démarré. Garder aussi la clé d'idempotence et le fichier exact envoyé.
+
+## 3. Suivre l'état
+
+Avec le `job_id` reçu dans `MARKO_JOB_ID` :
+
+```bash
+curl --fail-with-body \
+  "$MARKO_API_BASE_URL/import-jobs/$MARKO_JOB_ID" \
+  --header "Authorization: Bearer $MARKO_ACCESS_TOKEN"
+```
+
+Espacer les lectures, par exemple de deux secondes, avec une durée d'attente maximale dans votre application. Si cette durée est dépassée, conserver le job pour le reprendre plus tard; ne pas renvoyer le lot comme s'il avait disparu.
+
+Les états terminaux du job sont `completed`, `partial`, `failed` et `cancelled`. À ce stade, lire `completed_items`, `noop_items`, `failed_items` et `conflict_items`.
+
+## 4. Lire tous les résultats
+
+```bash
+curl --fail-with-body \
+  "$MARKO_API_BASE_URL/import-jobs/$MARKO_JOB_ID/items?limit=100&offset=0" \
+  --header "Authorization: Bearer $MARKO_ACCESS_TOKEN"
+```
+
+Continuer la pagination jusqu'à la fin de la liste. Les éléments exposent leur `external_id`, `item_kind`, `status` et, si disponible, `target_id`, `error_code`, `error_message` et `conflict_payload`.
+
+| Résultat d'un élément | Suite à donner |
+| --- | --- |
+| `completed` | Conserver l'identifiant cible et relire la ressource utile. |
+| `noop` | Conserver l'identifiant cible : aucun changement n'était nécessaire. |
+| `failed` | Corriger ou diagnostiquer l'échec avant de choisir une reprise. |
+| `conflict` | Comparer les données source à la cible; ne pas écraser une correction humaine sans décision. |
+
+## 5. Reprendre ou annuler
+
+Pour un job `failed` ou `partial`, `POST /import-jobs/{job_id}/retry` remet les éléments éligibles en file. Transmettre une clé d'idempotence propre à cette action. Cette route ne remplace pas le contenu du lot et ne réécrit pas ses éléments déjà terminés.
+
+Pour un contenu source corrigé, préparer une nouvelle révision avec ses références stables et une nouvelle clé d'envoi. Vérifier d'abord les résultats du lot précédent.
+
+`POST /import-jobs/{job_id}/cancel` demande l'arrêt du traitement restant. Les mutations déjà enregistrées sont conservées. Une annulation ne restaure pas les anciennes valeurs.
+
+Pour les lots avec notes historiques, consulter [Imports et notes](/imports-and-notes) avant d'ajouter les dates et les versions source.

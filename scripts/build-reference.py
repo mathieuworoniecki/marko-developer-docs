@@ -16,8 +16,19 @@ import sys
 from jsonschema import Draft202012Validator, FormatChecker
 
 from response_contracts import contracts
+from field_descriptions import enrich_fields
 
 METHODS = {"get", "post", "put", "patch", "delete"}
+TAG_LABELS = {
+    "auth": "Authentification", "entity": "Entité", "portfolio": "Portefeuille",
+    "deals": "Deals", "fonds": "Fonds", "spvs": "SPV", "operations": "Opérations",
+    "taxonomies": "Taxonomies", "import-jobs": "Imports par lot", "comments": "Commentaires",
+    "documents": "Documents", "users": "Utilisateurs", "settings": "Paramètres",
+    "rcci": "Conformité RCCI", "field-definitions": "Champs métier", "search": "Recherche",
+    "operateurs": "Opérateurs", "alerts": "Alertes", "notifications": "Notifications",
+    "calendar": "Calendrier", "enrichment": "Enrichissement SIREN", "reports": "Exports",
+    "reporting": "Templates de reporting", "workflows": "Workflows et extraction IA", "tasks": "Tâches",
+}
 DESCRIPTIONS = {
     "limit": "Nombre maximal de résultats sur cette page; bornes et valeur par défaut ci-dessous.",
     "offset": "Nombre de résultats à ignorer avant cette page (commence à 0).",
@@ -84,11 +95,22 @@ def digest(value):
 def enrich(public, native):
     result = deepcopy(public)
     result["openapi"] = "3.1.0"
+    tags = {tag["name"]: deepcopy(tag) for tag in result.get("tags", [])}
+    for item in result["paths"].values():
+        for method, operation in item.items():
+            if method in METHODS:
+                for name in operation.get("tags", []):
+                    tags.setdefault(name, {"name": name})["x-group"] = TAG_LABELS[name]
+    result["tags"] = list(tags.values())
     native_schemas = native["components"]["schemas"]
     manual, overrides = contracts(native)
     components = result.setdefault("components", {}).setdefault("schemas", {})
     components.update(deepcopy(native_schemas))
     components.update(manual)
+    # Serializer helpers reuse primitive schema objects. Give each property its
+    # own JSON node before attaching field-specific editorial descriptions.
+    components = json.loads(json.dumps(components, ensure_ascii=False))
+    result["components"]["schemas"] = components
     # Runtime validators and service checks not represented by Pydantic's basic
     # JSON Schema. These are reviewed rules of the served version.
     for name in ("ExternalNoteUpsertRequest", "ExternalNoteImport"):
@@ -205,6 +227,9 @@ def enrich(public, native):
                 if method == "post" and path == "/users/me/saved-views" and isinstance(example, dict):
                     example["name"] = "Vue exemple"
                     example["filters"] = {}
+                if method == "post" and path == "/workflows/ai-extraction-jobs" and isinstance(example, dict):
+                    # Ignored by the real body model: it is not a dry-run flag.
+                    example.pop("run_now", None)
             native_success = {code: response for code, response in native_op["responses"].items() if code.startswith("2") and code != "204"}
             for code in native.get("x-documentation-error-statuses", {}).get(f"{method} {path}", []):
                 operation["responses"].setdefault(str(code), {
@@ -316,6 +341,7 @@ def enrich(public, native):
                 collect(value)
     collect(result["paths"])
     result["components"]["schemas"] = {name: components[name] for name in sorted(reachable)}
+    enrich_fields(result)
     repair_examples(result)
     return result
 

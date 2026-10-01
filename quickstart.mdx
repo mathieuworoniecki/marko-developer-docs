@@ -9,6 +9,12 @@ Un administrateur technique de votre entité crée une clé dans la section **AP
 
 Définissez `MARKO_KEY_ID` et `MARKO_API_SECRET` dans l'environnement de votre processus. Pour une clé de préproduction, définissez également `MARKO_API_BASE_URL=https://partner-api-preprod.marko.fr/v1`.
 
+## Choisir votre langage
+
+Les [programmes Python, Node.js et PHP](/code-examples) sont téléchargeables et s'exécutent sans dépendance supplémentaire. Ils prennent en charge l'échange signé, la conservation du bearer et les erreurs JSON.
+
+L'exemple Python ci-dessous montre l'échange directement, sans client auxiliaire.
+
 ## Échanger la clé et appeler l'API
 
 L'exemple utilise seulement la bibliothèque standard Python. Il crée un nonce unique, signe le message canonique, récupère un bearer court, puis lit une page d'opérations.
@@ -54,3 +60,5 @@ with urllib.request.urlopen(operations_request, timeout=30) as response:
 ```
 
 Une réponse `403` sur le second appel indique notamment que le scope ou la route n'est pas autorisé pour cette clé. Consultez [les erreurs et les reprises](/errors-and-retries) et la référence de l'endpoint concerné.
+
+Pour une écriture, suivre [CRM vers MARKO](/tutorials/crm-sync). Pour comprendre les identifiants et les rattachements avant d'intégrer plusieurs familles, lire [Comprendre les ressources](/concepts).

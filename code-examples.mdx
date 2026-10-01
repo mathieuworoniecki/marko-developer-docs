@@ -1,0 +1,123 @@
+---
+title: "Exemples Python, Node.js et PHP"
+sidebarTitle: "Exemples de code"
+description: "Des programmes sans dépendances pour signer l'échange HMAC et appeler les routes JSON."
+---
+
+Les trois programmes ci-dessous utilisent les bibliothèques standard de leur langage. Ils signent l'échange HMAC, conservent le bearer et le renouvellent avant son expiration. Ils lisent une page d'opérations lorsqu'ils sont exécutés directement.
+
+## Exécuter le premier appel
+
+Définir `MARKO_KEY_ID` et `MARKO_API_SECRET` dans l'environnement du processus. Pour la préproduction, définir aussi `MARKO_API_BASE_URL=https://partner-api-preprod.marko.fr/v1`. La clé doit autoriser `operations:read`.
+
+<CodeGroup>
+```bash Python 3.10+
+curl --fail --location \
+  https://raw.githubusercontent.com/mathieuworoniecki/marko-developer-docs/main/examples/python/marko_client.py \
+  --output marko_client.py
+python3 marko_client.py
+```
+
+```bash Node.js 22+
+curl --fail --location \
+  https://raw.githubusercontent.com/mathieuworoniecki/marko-developer-docs/main/examples/node/marko-client.mjs \
+  --output marko-client.mjs
+node marko-client.mjs
+```
+
+```bash PHP 8.1+
+curl --fail --location \
+  https://raw.githubusercontent.com/mathieuworoniecki/marko-developer-docs/main/examples/php/marko-client.php \
+  --output marko-client.php
+php marko-client.php
+```
+</CodeGroup>
+
+Lire le fichier téléchargé avant de l'exécuter. Le secret reste dans l'environnement côté serveur. Il est utilisé pour calculer la signature; il n'est pas envoyé sur les routes métier.
+
+## Utiliser le client JSON dans votre programme
+
+Après avoir téléchargé le fichier correspondant, importer son client :
+
+<CodeGroup>
+```python Python
+from marko_client import ApiError, MarkoClient
+
+api = MarkoClient()
+try:
+    result = api.request("GET", "/operations?limit=20&offset=0")
+except ApiError as error:
+    # Conserver status et request_id pour le diagnostic.
+    # Ne pas journaliser de secret ou de bearer.
+    print(error.status, error.request_id)
+    raise
+```
+
+```javascript Node.js
+import { ApiError, MarkoClient } from './marko-client.mjs';
+
+const api = new MarkoClient();
+try {
+  const result = await api.request('GET', '/operations?limit=20&offset=0');
+} catch (error) {
+  if (error instanceof ApiError) console.error(error.status, error.requestId);
+  throw error;
+}
+```
+
+```php PHP
+<?php
+require 'marko-client.php';
+
+$api = new MarkoClient();
+try {
+    $result = $api->request('GET', '/operations?limit=20&offset=0');
+} catch (MarkoApiError $error) {
+    error_log('HTTP ' . $error->status . '; request_id=' . ($error->requestId ?? 'absent'));
+    throw $error;
+}
+```
+</CodeGroup>
+
+Les chemins sont relatifs au préfixe `/v1`. Encoder les valeurs de recherche et les segments variables avec la bibliothèque du langage.
+
+## Envoyer une écriture
+
+La clé suivante représente une révision de la source. La conserver avec le contenu avant l'envoi. Cet exemple écrit dans l'entité de votre clé et exige `operations:write`.
+
+<CodeGroup>
+```python Python
+result = api.request(
+    "PUT", "/operations/external/crm-operation-001",
+    {"name": "Opération CRM de démonstration"},
+    idempotency_key="crm-operation-001-revision-01",
+)
+marko_id = result["marko_id"]
+```
+
+```javascript Node.js
+const result = await api.request(
+  'PUT', '/operations/external/crm-operation-001',
+  { name: 'Opération CRM de démonstration' },
+  { idempotencyKey: 'crm-operation-001-revision-01' },
+);
+const markoId = result.marko_id;
+```
+
+```php PHP
+$result = $api->request(
+    'PUT', '/operations/external/crm-operation-001',
+    ['name' => 'Opération CRM de démonstration'],
+    'crm-operation-001-revision-01',
+);
+$markoId = $result['marko_id'];
+```
+</CodeGroup>
+
+## Ce que ces exemples prennent en charge
+
+Les réponses JSON et les réponses sans corps sont acceptées. Les erreurs exposent leur statut, le problème JSON disponible et l'identifiant de corrélation. Un `401` sur une lecture entraîne au plus un nouvel échange et une nouvelle lecture. Les écritures et les erreurs réseau ne sont pas répétées automatiquement.
+
+Pour une reprise d'écriture, suivre [Écritures et idempotence](/writes-and-idempotency). Pour `429`, respecter `Retry-After` lorsqu'il est fourni. Les exports binaires et les uploads multipart demandent un client adapté, comme cURL dans le [tutoriel documentaire](/tutorials/document-extraction).
+
+Ces programmes sont des exemples d'intégration, pas un SDK officiel couvrant toutes les routes. Ils sont testés avec une fixture HTTP locale pour les signatures, le renouvellement du bearer et le traitement des conflits. Cela ne prouve pas l'exécution des parcours métier avec votre clé ou vos données.

@@ -22,11 +22,39 @@
     "groups": [
       {
         "group": "Démarrer",
-        "pages": ["index", "quickstart", "authentication", "resources"]
+        "pages": [
+          "index",
+          "quickstart",
+          "authentication",
+          "concepts",
+          "resources"
+        ]
+      },
+      {
+        "group": "Tutoriels",
+        "pages": [
+          "tutorials/crm-sync",
+          "tutorials/batch-import",
+          "tutorials/document-extraction",
+          "code-examples"
+        ]
       },
       {
         "group": "Intégrer",
-        "pages": ["environments", "scopes-and-delegation", "pagination-and-data", "writes-and-idempotency", "errors-and-retries", "imports-and-notes", "documents-guide", "taxonomies-guide", "workflows-guide", "privacy-guide", "ai-and-tools"]
+        "pages": [
+          "environments",
+          "scopes-and-delegation",
+          "pagination-and-data",
+          "writes-and-idempotency",
+          "errors-and-retries",
+          "imports-and-notes",
+          "documents-guide",
+          "taxonomies-guide",
+          "workflows-guide",
+          "privacy-guide",
+          "ai-and-tools",
+          "changelog"
+        ]
       },
       {
         "group": "Référence API",
@@ -37,9 +65,23 @@
   "api": {
     "playground": {
       "display": "none"
+    },
+    "examples": {
+      "languages": [
+        "curl",
+        "python",
+        "node",
+        "typescript",
+        "php"
+      ]
     }
   },
   "contextual": {
-    "options": ["copy", "view", "chatgpt", "claude"]
+    "options": [
+      "copy",
+      "view",
+      "chatgpt",
+      "claude"
+    ]
   }
 }

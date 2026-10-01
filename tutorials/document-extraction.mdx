@@ -1,0 +1,76 @@
+---
+title: "Envoyer un document et suivre son extraction"
+sidebarTitle: "Document et extraction IA"
+description: "Uploader un fichier dans une opération existante, vérifier sa fiche et suivre le job IA."
+---
+
+import { CopyDocumentation } from "/snippets/CopyDocumentation.jsx"
+
+<CopyDocumentation topic="document-extraction" label="Copier ce tutoriel et ses routes API" />
+
+Il faut une opération déjà accessible à votre clé, les scopes `documents:write`, `documents:read`, `ai_extraction:write` et `ai_extraction:read`, et les autorisations documentaires correspondantes. L'IA doit être activée pour l'entité. Ce parcours déclenche un traitement documentaire : utiliser un fichier de test dont vous avez autorisé l'analyse.
+
+## 1. Envoyer directement le fichier
+
+Définir `MARKO_OPERATION_ID` avec l'UUID de l'opération et choisir une **nouvelle** référence documentaire. Ne pas créer une fiche sans fichier sous cette référence avant l'upload.
+
+```bash
+curl --fail-with-body --request PUT \
+  "$MARKO_API_BASE_URL/documents/external/crm-document-001/upload" \
+  --header "Authorization: Bearer $MARKO_ACCESS_TOKEN" \
+  --header "Idempotency-Key: crm-document-001-upload-01" \
+  --form "file=@./exemple.pdf;type=application/pdf" \
+  --form "type=autre" \
+  --form "operation_id=$MARKO_OPERATION_ID" \
+  --form 'partner_metadata={"source":"crm","reference":"crm-document-001"}'
+```
+
+Laisser cURL construire le formulaire multipart. `partner_metadata` est ici du texte JSON. Enregistrer le `document_id` de la réponse dans `MARKO_DOCUMENT_ID`.
+
+Une référence existante peut être retrouvée sans ajouter de fichier. Pour une reprise du même upload, garder l'identifiant, la clé, le fichier et les métadonnées de départ.
+
+## 2. Vérifier le document
+
+```bash
+curl --fail-with-body \
+  "$MARKO_API_BASE_URL/documents/$MARKO_DOCUMENT_ID" \
+  --header "Authorization: Bearer $MARKO_ACCESS_TOKEN"
+```
+
+Vérifier son rattachement à l'opération, ses métadonnées et la disponibilité de `download_url`. Une fiche sans fichier disponible ne prouve pas que l'upload attendu a eu lieu. Une indisponibilité liée aux droits ou au traitement doit être diagnostiquée avant l'analyse.
+
+## 3. Demander l'extraction
+
+Enregistrer un fichier `extraction.json` en remplaçant les deux UUID par ceux obtenus dans votre contexte :
+
+```json
+{
+  "document_id":"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+  "operation_id":"bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb"
+}
+```
+
+```bash
+curl --fail-with-body --request POST \
+  "$MARKO_API_BASE_URL/workflows/ai-extraction-jobs" \
+  --header "Authorization: Bearer $MARKO_ACCESS_TOKEN" \
+  --header "Content-Type: application/json" \
+  --header "Idempotency-Key: crm-document-001-extraction-01" \
+  --data-binary @extraction.json
+```
+
+La réponse `202` contient un `id` de job. Enregistrer cet identifiant dans `MARKO_EXTRACTION_JOB_ID`. Le document doit appartenir à l'intégration et à l'environnement de la clé; un simple scope IA ne donne pas accès aux documents d'une autre intégration.
+
+## 4. Suivre le job et lire son résultat
+
+```bash
+curl --fail-with-body \
+  "$MARKO_API_BASE_URL/workflows/ai-extraction-jobs/$MARKO_EXTRACTION_JOB_ID" \
+  --header "Authorization: Bearer $MARKO_ACCESS_TOKEN"
+```
+
+Espacer les lectures et conserver l'identifiant si l'attente dépasse votre budget. Les états sont `pending`, `running`, `completed`, `failed`, `dead_letter` et `cancelled`.
+
+Pour `failed` ou `dead_letter`, lire `error_message` et diagnostiquer le traitement avant de soumettre une nouvelle intention. Pour `completed`, lire `suggestions_created`, `auto_applied`, `operation_resolution`, `narrative` et les résultats disponibles.
+
+Un traitement terminé ne signifie pas que toute donnée extraite est correcte ou enregistrée. Les propositions qui demandent une confirmation restent à traiter dans le parcours de validation MARKO. Vérifier les valeurs métier persistées avant de les utiliser dans votre application.

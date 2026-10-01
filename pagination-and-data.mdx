@@ -3,7 +3,7 @@ title: "Pagination et données"
 description: "Lire toutes les pages, utiliser les filtres exacts et interpréter les types métier."
 ---
 
-## Deux formes de pagination
+## Formes de pagination
 
 La référence de chaque route indique ses valeurs par défaut, bornes et filtres. Les limites ne sont pas uniformes : n'appliquez pas une valeur globale à toutes les ressources.
 
@@ -43,3 +43,20 @@ Un champ absent et un champ `null` ne sont pas interchangeables dans une mutatio
 ## Champs métier extensibles
 
 `data`, certains résumés, configurations de workflow et métadonnées sont des objets JSON ouverts par conception. Pour les champs métier des opérations, interrogez `GET /field-definitions` ou `GET /field-definitions/by-key/{field_key}` : le référentiel décrit les clés et leurs métadonnées métier. Vérifiez l'unité, le type et la disponibilité d'un champ avant de l'écrire; ne déduisez pas une unité monétaire ou un pourcentage de son nom.
+
+## Unités des snapshots financiers
+
+Le champ `kpi_snapshot` utilise les unités de stockage des indicateurs. Les valeurs décimales peuvent être fournies sous forme numérique ou de chaîne décimale selon le schéma.
+
+| Champ | Unité à transmettre | Exemple |
+| --- | --- | --- |
+| `ltv`, `ltc` | Fraction entre 0 et 2. | `0.65` signifie 65 %, pas `65`. |
+| `debt_yield` | Fraction. | `0.08` signifie 8 %. |
+| `dscr`, `icr` | Multiple de couverture. | `1.25` signifie 1,25 fois. |
+| `pct_perte_estimee` | Fraction entre 0 et 1. | `0.03` signifie 3 %. |
+| `risk_score_simple` | Points entre 0 et 100. | `35` est un score de 35 points. |
+| `crd_total_source` | Origine du capital restant dû. | `financing_tranches` ou `operation_data`. |
+
+`crd_total`, `crd_senior`, `crd_mezzanine`, `valeur_venale`, `noi` et `service_dette` sont des valeurs financières. Garder des unités monétaires cohérentes et aligner les périodes du NOI et du service de la dette. Le schéma du snapshot ne porte pas de champ de conversion de devise; confirmer cette convention pour les données importées.
+
+Les clés des KPI appartiennent au snapshot. Les placer dans `kpi_snapshot` rend leur rôle explicite; elles ne doivent pas être traitées comme de simples champs JSON indépendants dans `data`.
