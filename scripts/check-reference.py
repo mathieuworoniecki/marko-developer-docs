@@ -36,7 +36,7 @@ TUTORIAL_PACKS = {
         "tags": ["import-jobs"], "paths": ["/auth/token", "/operations/batch"],
     },
     "document-extraction": {
-        "title": "Document et extraction IA", "guides": ["tutorials/document-extraction", "documents-guide", "workflows-guide"],
+        "title": "Document avec MARKO - Extract", "guides": ["tutorials/document-extraction", "documents-guide", "workflows-guide"],
         "paths": ["/auth/token", "/documents/external/{external_id}/upload", "/documents/{document_id}", "/workflows/ai-extraction-jobs", "/workflows/ai-extraction-jobs/{job_id}"],
     },
 }

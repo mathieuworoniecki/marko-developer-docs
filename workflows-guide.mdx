@@ -1,6 +1,6 @@
 ---
-title: "Workflows et extraction IA"
-description: "Distinguer définitions, exécutions, recommandations et jobs d'analyse documentaire."
+title: "Workflows et MARKO - Extract"
+description: "Distinguer les workflows et recommandations des jobs documentaires de MARKO - Extract."
 ---
 
 ## Définitions et presets
@@ -31,7 +31,7 @@ Le périmètre est `entity`, `fund`, `spv` ou `operation`; fournissez l'identifi
 
 Accepter une recommandation et créer un workflow sont des actions distinctes. L'endpoint `create-workflow` instancie la définition personnalisée : ne supposez pas qu'un simple `accept` la crée.
 
-## Extraction documentaire IA
+## Extraction documentaire avec MARKO - Extract
 
 `POST /workflows/ai-extraction-jobs` place un document dans la file d'extraction gouvernée. Cette route demande **`ai_extraction:write`**, tandis que la liste et le détail des jobs demandent **`ai_extraction:read`**.
 
