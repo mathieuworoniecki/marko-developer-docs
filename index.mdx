@@ -16,13 +16,23 @@ L'API partenaire permet de lire et synchroniser les données de votre entité MA
   <Card title="CRM vers MARKO" icon="arrows-rotate" href="/tutorials/crm-sync" arrow>
     Synchronisez une opération et ses notes historiques.
   </Card>
-  <Card title="Document et extraction IA" icon="file" href="/tutorials/document-extraction" arrow>
+  <Card title="Document avec MARKO - Extract" icon="file" href="/tutorials/document-extraction" arrow>
     Envoyez un fichier et suivez son traitement.
   </Card>
   <Card title="Référence API" icon="code" href="/resources" arrow>
     Trouvez les routes, leurs champs et leurs scopes.
   </Card>
 </Columns>
+
+## Les trois espaces MARKO
+
+| Espace | Usage dans le produit |
+| --- | --- |
+| **MARKO - Extract** | Extraction documentaire et Drive. |
+| **MARKO - Monitor** | Suivi des opérations, Kanban et échéancier. |
+| **MARKO - Forecast** | Analyse du portefeuille et préparation des rapports. |
+
+Ces noms désignent les espaces du produit. Votre intégration utilise les routes publiées dans la référence API : l'upload documentaire et les jobs de **MARKO - Extract** restent accessibles par `/documents/...` et `/workflows/ai-extraction-jobs`. Le catalogue public ne propose pas d'endpoint conversationnel pour Monitor ou Forecast.
 
 ## Votre intégration
 
@@ -42,4 +52,4 @@ Les [exemples Python, Node.js et PHP](/code-examples) prennent en charge les app
 
 <CopyDocumentation />
 
-Le menu de chaque page permet aussi de copier son contenu en Markdown ou de l'ouvrir dans Claude ou ChatGPT. Pour un contexte plus court, le guide [IA et outils de développement](/ai-and-tools) permet de copier une famille API ou un tutoriel avec ses contrats. L'[index de la documentation](https://developers.marko.fr/llms.txt?v=20261001-2) et le [contrat OpenAPI enrichi](https://raw.githubusercontent.com/mathieuworoniecki/marko-developer-docs/main/openapi.json) sont accessibles directement.
+Le menu de chaque page permet aussi de copier son contenu en Markdown ou de l'ouvrir dans Claude ou ChatGPT. Pour un contexte plus court, le guide [IA et outils de développement](/ai-and-tools) permet de copier une famille API ou un tutoriel avec ses contrats. L'[index de la documentation](https://developers.marko.fr/llms.txt?v=20261002-1) et le [contrat OpenAPI enrichi](https://raw.githubusercontent.com/mathieuworoniecki/marko-developer-docs/main/openapi.json) sont accessibles directement.
