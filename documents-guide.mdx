@@ -3,7 +3,7 @@ title: "Documents et upload"
 description: "Transmettre un fichier à MARKO - Extract, comprendre la déclaration metadata et vérifier le document obtenu."
 ---
 
-Les routes documentaires alimentent **MARKO - Extract**. Leurs chemins et scopes restent ceux de la référence API.
+Les routes documentaires alimentent **MARKO - Extract**. Leurs chemins et scopes restent ceux de la référence API. Pour récupérer ensuite ce que MARKO a lu dans un document, voir [Récupérer les données lues par MARKO](/data-extracted-guide).
 
 ## Uploader directement le fichier
 
@@ -26,7 +26,7 @@ Lorsque les deux identifiants d'opération sont fournis, `operation_id` est util
 
 ## Réponses et reprises
 
-La réponse contient `external_id`, `document_id`, `created` et `document`. Une création répond `201`, une référence existante `200`. Conservez le `document_id` et relisez `GET /documents/{document_id}` avec `documents:read` pour vérifier ses métadonnées et l'URL de téléchargement disponible.
+La réponse est un reçu court : `external_id`, `document_id` et `created`. Une création répond `201`, une référence existante `200`. Conservez le `document_id` et relisez `GET /documents/{document_id}` avec `documents:read` pour vérifier ses métadonnées et l'URL de téléchargement disponible.
 
 La reprise compare notamment le contenu du fichier, son nom, son type et les métadonnées de l'appel initial. Réutilisez la même clé et le même contenu; un identifiant externe déjà associé à un autre contenu peut produire `409`. N'utilisez pas cette route pour remplacer arbitrairement un fichier existant.
 

@@ -15,7 +15,7 @@ Les automatisations système ne sont pas toutes modifiables. `kanban-auto-promot
 
 ## Exécution et historique
 
-`POST /workflows/workflow-definitions/{definition_id}/run` exige `workflows:write` et une clé d'idempotence. Sa réponse `202` contient `workflow` et `run`. Consultez `/workflows/history` pour l'historique et `/workflows/stats` pour les compteurs. Un run peut être `pending`, `running`, `completed`, `failed` ou `cancelled`.
+`POST /workflows/workflow-definitions/{definition_id}/run` exige `workflows:write` et une clé d'idempotence. Sa réponse `202` est un reçu : `workflow` (identifiant et état) et `run` (identifiant, état et dates), sans résultat. Consultez `/workflows/history` pour l'historique et `/workflows/stats` pour les compteurs. Un run peut être `pending`, `running`, `completed`, `failed` ou `cancelled`.
 
 L'historique rassemble deux formes : les jobs système avec `workflow_source=system` et les runs personnalisés avec `workflow_source=custom`. Les propriétés spécifiques à une forme ne sont pas garanties dans l'autre. Les objets `result` dépendent du preset ou du type de job.
 
@@ -37,4 +37,4 @@ Accepter une recommandation et créer un workflow sont des actions distinctes. L
 
 Conservez l'identifiant du job retourné et consultez `GET /workflows/ai-extraction-jobs/{job_id}`. Les états possibles du job système sont `pending`, `running`, `completed`, `failed`, `dead_letter` et `cancelled`. Le détail peut contenir des compteurs de suggestions, un récit, une résolution d'opération, un résultat public ou une erreur.
 
-Un job `completed` signifie que le traitement a terminé; il ne garantit pas que toute suggestion a été appliquée ni que toute donnée extraite est correcte. Les confirmations, droits et règles de validation restent applicables aux résultats.
+Un job `completed` signifie que le traitement a terminé; il ne garantit pas que toute suggestion a été appliquée ni que toute donnée extraite est correcte. Les confirmations, droits et règles de validation restent applicables aux résultats. Pour savoir ce que contient le résultat et où relire les valeurs validées, voir [Récupérer les données lues par MARKO](/data-extracted-guide).
