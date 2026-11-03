@@ -45,6 +45,10 @@ from fastapi import FastAPI
 from app.routers import comments, operations, reporting_templates
 from app.routers.public_api import public_v1
 from app.services import privacy_export_service as privacy
+try:
+    from app.services import follow_up_privacy_service as follow_up_privacy
+except ImportError:  # Older backends have no follow-up privacy sources.
+    follow_up_privacy = None
 from app.services.workflow_execution_service import list_workflow_presets
 from app.models.privacy_case import PrivacyCaseStatus
 from app.schemas import saved_view
@@ -256,6 +260,13 @@ for source in service._entity_array_sources():
             "embedded_subject_reference": {"type": "boolean"}, "derived_relationship": {"type": "boolean"},
         }
         properties.update({key: column_schema(source.model, key) for key in registered.export_fields})
+        schema = obj(properties)
+    elif follow_up_privacy and source.key in follow_up_privacy.SOURCE_BY_KEY:
+        # Follow-up sources are declarative: exported columns plus an optional computed projection.
+        declared = follow_up_privacy.SOURCE_BY_KEY[source.key]
+        properties = {key: column_schema(source.model, key) for key in declared.export_fields}
+        if declared.computed is not None:
+            properties.update(serializer_schema(declared.computed, source.model).get("properties", {}))
         schema = obj(properties)
     else:
         schema = serializer_schema(source.serializer, source.model)

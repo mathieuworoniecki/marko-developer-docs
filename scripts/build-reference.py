@@ -250,12 +250,22 @@ def enrich(public, native):
             for code, response in operation["responses"].items():
                 if not code.startswith("2") or code == "204":
                     continue
+                model_response = native_success.get(code) or next(iter(native_success.values()), {})
+                native_schema = model_response.get("content", {}).get("application/json", {}).get("schema")
                 replacement = overrides.get((method, path))
-                if replacement is None:
-                    model_response = native_success.get(code) or next(iter(native_success.values()), {})
-                    replacement = model_response.get("content", {}).get("application/json", {}).get("schema")
+                # A declared Pydantic response model (for example a minimal write
+                # receipt) filters the real response: it wins over a reviewed
+                # serializer contract written for an older untyped handler.
+                if replacement is None or (isinstance(native_schema, dict) and "$ref" in native_schema):
+                    replacement = native_schema
                 if replacement is not None:
                     response.setdefault("content", {}).setdefault("application/json", {})["schema"] = deepcopy(replacement)
+                if method == "post" and path == "/workflows/ai-extraction-jobs":
+                    # The catalogue sample predates the receipt model; JobStatus has no "queued".
+                    response["content"]["application/json"]["example"] = {
+                        "id": "11111111-1111-4111-8111-111111111111", "status": "pending", "retry_count": 0,
+                        "created_at": "2026-11-03T09:00:00Z", "started_at": None, "completed_at": None,
+                    }
                 if method == "get" and path in ("/fonds", "/spvs"):
                     response.setdefault("headers", {}).update({
                         "X-Marko-Limit": {"schema": {"type": "integer"}, "description": "Limite appliquée à la page."},
