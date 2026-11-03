@@ -73,4 +73,4 @@ Espacer les lectures et conserver l'identifiant si l'attente dépasse votre budg
 
 Pour `failed` ou `dead_letter`, lire `error_message` et diagnostiquer le traitement avant de soumettre une nouvelle intention. Pour `completed`, lire `suggestions_created`, `auto_applied`, `operation_resolution`, `narrative` et les résultats disponibles.
 
-Un traitement terminé ne signifie pas que toute donnée extraite est correcte ou enregistrée. Les propositions qui demandent une confirmation restent à traiter dans le parcours de validation MARKO. Vérifier les valeurs métier persistées avant de les utiliser dans votre application.
+Un traitement terminé ne signifie pas que toute donnée extraite est correcte ou enregistrée. Les propositions qui demandent une confirmation restent à traiter dans le parcours de validation MARKO. Vérifier les valeurs métier persistées avant de les utiliser dans votre application. Le guide [Récupérer les données lues par MARKO](/data-extracted-guide) détaille `raw_result`, les citations et les endpoints de relecture des valeurs.

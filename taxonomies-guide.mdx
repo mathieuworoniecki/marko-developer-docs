@@ -13,7 +13,7 @@ Conservez le **code**, distinct du libellé affiché. Les options peuvent dépen
 
 ## Upserts externes
 
-Les upserts externes d'opérations et de notes peuvent transformer une valeur inconnue en option visible propre à l'entité. La réponse expose `taxonomy_additions` pour signaler ces créations. Le segment généré d'un code `custom__...` est imprévisible : conservez **le code renvoyé**, puis réutilisez-le.
+Les upserts externes d'opérations et de notes peuvent transformer une valeur inconnue en option visible propre à l'entité. La réponse de l'upsert est un reçu court (`external_id`, `marko_id`, `outcome`, `request_id`) : elle ne liste pas les options créées. Pour connaître le code retenu, relisez la ressource, par exemple `GET /operations/external/{external_id}`, ou le catalogue `GET /taxonomies`. Le segment généré d'un code `custom__...` est imprévisible : conservez **le code relu**, puis réutilisez-le.
 
 Cette règle ne signifie pas que toutes les routes de mise à jour créent des catégories. Respectez le contrat de chaque endpoint. Si votre intégration doit utiliser uniquement les choix validés par l'administrateur, chargez le catalogue visible avant l'envoi et empêchez les valeurs inconnues côté client.
 

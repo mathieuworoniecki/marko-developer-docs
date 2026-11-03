@@ -29,9 +29,9 @@ curl --fail-with-body --request PUT \
 
 Le corps minimal exige `name`. Ajouter `spv_id`, `lead_operateur_id` ou des données métier seulement lorsque vous connaissez leurs valeurs dans l'entité. Une création répond `201`; un résultat déjà associé peut répondre `200`.
 
-La réponse contient `external_id`, `marko_id`, `outcome` et `resource`. Enregistrer `marko_id` dans le CRM. Un `outcome=noop` signifie que les valeurs utiles sont déjà présentes, pas que l'identifiant est absent.
+La réponse est un reçu court : `external_id`, `marko_id`, `outcome` et `request_id`. Elle ne renvoie pas la ressource; relisez-la à l'étape suivante. Enregistrer `marko_id` dans le CRM. Un `outcome=noop` signifie que les valeurs utiles sont déjà présentes, pas que l'identifiant est absent.
 
-Pour renseigner une taxonomie, consulter `GET /taxonomies?dimension=...` avant l'envoi. Conserver les codes renvoyés dans `taxonomy_additions` lorsqu'une option propre à l'entité est créée.
+Pour renseigner une taxonomie, consulter `GET /taxonomies?dimension=...` avant l'envoi. Si une option propre à l'entité est créée, relire l'opération pour obtenir son code `custom__...` et le conserver.
 
 ## 2. Relire l'opération
 

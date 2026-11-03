@@ -16,9 +16,9 @@ BASE_GUIDES = ["authentication", "environments", "errors-and-retries", "scopes-a
 FAMILY_GUIDES = {
     "auth": ["quickstart", "code-examples"],
     "operations": ["concepts", "writes-and-idempotency", "pagination-and-data", "taxonomies-guide", "imports-and-notes", "tutorials/crm-sync"],
-    "documents": ["concepts", "documents-guide", "tutorials/document-extraction"],
+    "documents": ["concepts", "documents-guide", "data-extracted-guide", "tutorials/document-extraction"],
     "import-jobs": ["imports-and-notes", "tutorials/batch-import"],
-    "workflows": ["workflows-guide", "tutorials/document-extraction"],
+    "workflows": ["workflows-guide", "data-extracted-guide", "tutorials/document-extraction"],
     "taxonomies": ["taxonomies-guide"],
     "field-definitions": ["pagination-and-data", "taxonomies-guide"],
     "users": ["privacy-guide"],
@@ -36,7 +36,7 @@ TUTORIAL_PACKS = {
         "tags": ["import-jobs"], "paths": ["/auth/token", "/operations/batch"],
     },
     "document-extraction": {
-        "title": "Document avec MARKO - Extract", "guides": ["tutorials/document-extraction", "documents-guide", "workflows-guide"],
+        "title": "Document avec MARKO - Extract", "guides": ["tutorials/document-extraction", "documents-guide", "workflows-guide", "data-extracted-guide"],
         "paths": ["/auth/token", "/documents/external/{external_id}/upload", "/documents/{document_id}", "/workflows/ai-extraction-jobs", "/workflows/ai-extraction-jobs/{job_id}"],
     },
 }

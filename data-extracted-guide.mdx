@@ -1,0 +1,159 @@
+---
+title: "Récupérer les données lues par MARKO"
+sidebarTitle: "Données lues par MARKO"
+description: "Ce que l'API renvoie après l'import d'un document : suivi du job, citations, valeurs validées et limites actuelles."
+---
+
+Cette page répond à une question simple : après l'import d'un document, que peut-on récupérer par l'API et dans quel format ? Tout est en **JSON**. Les exemples sont synthétiques; leurs champs suivent les schémas de la référence API.
+
+## Le parcours en quatre étapes
+
+1. **Dépôt du document.** Vous envoyez le fichier avec `PUT /documents/external/{external_id}/upload` (voir [Documents et upload](/documents-guide)).
+2. **Job d'extraction.** Vous lancez la lecture avec `POST /workflows/ai-extraction-jobs`, puis vous suivez le job avec `GET /workflows/ai-extraction-jobs/{job_id}`. Le job dit si la lecture est terminée, combien de propositions ont été créées et lesquelles ont été appliquées automatiquement.
+3. **Validation dans MARKO.** Les propositions qui demandent une confirmation sont validées ou refusées par une personne, dans l'application MARKO. L'API ne permet pas cette validation.
+4. **Valeurs écrites.** Une valeur validée est écrite dans l'objet concerné : opération (dont ses lots et ses baux), fonds, SPV, opérateur, ou objet de financement comme une tranche ou un covenant. Vous la relisez ensuite avec l'endpoint de cet objet, lorsqu'il est dans le contrat stable.
+
+Le job est donc un **compte rendu de lecture**. Les valeurs de référence sont celles des objets, après validation.
+
+## 1. Lancer et suivre le job
+
+Il faut les scopes `ai_extraction:write` et `ai_extraction:read`, et l'IA doit être activée pour l'entité. Le document doit avoir été déposé par votre intégration, dans le même environnement que la clé.
+
+La création répond `202` avec un reçu court :
+
+```json
+{
+  "id": "11111111-1111-4111-8111-111111111111",
+  "status": "pending",
+  "retry_count": 0,
+  "created_at": "2026-11-03T09:00:00Z",
+  "started_at": null,
+  "completed_at": null
+}
+```
+
+Si un job est déjà en cours pour ce document, MARKO peut renvoyer ce job au lieu d'en créer un autre. Conservez l'`id` et lisez le détail du job à intervalles espacés. Les états sont `pending`, `running`, `completed`, `failed`, `dead_letter` et `cancelled`.
+
+`GET /workflows/ai-extraction-jobs` liste les jobs, du plus récent au plus ancien. La pagination utilise `limit` (1 à 200, 20 par défaut) et `offset`; le filtre `status` est facultatif. La réponse contient `items`, `total`, `limit` et `offset` (voir [Pagination et données](/pagination-and-data)).
+
+## 2. Lire le détail du job
+
+Exemple de job terminé :
+
+```json
+{
+  "id": "11111111-1111-4111-8111-111111111111",
+  "status": "completed",
+  "document_id": "55555555-5555-4555-8555-555555555555",
+  "operation_id": "44444444-4444-4444-8444-444444444444",
+  "provider": "openrouter",
+  "narrative": "Contrat de prêt senior de 2 500 000 EUR au taux fixe de 6,5 %.",
+  "suggestions_created": 2,
+  "auto_applied": 0,
+  "operation_resolution": null,
+  "error_message": null,
+  "created_at": "2026-11-03T09:00:00Z",
+  "started_at": "2026-11-03T09:00:04Z",
+  "completed_at": "2026-11-03T09:02:31Z",
+  "raw_result": {
+    "provider": "openrouter",
+    "document_type": "contrat_de_pret_bancaire",
+    "document_id": "55555555-5555-4555-8555-555555555555",
+    "operation_id": "44444444-4444-4444-8444-444444444444",
+    "filename": "contrat-pret.pdf",
+    "suggestions_created": 2,
+    "pending_review": 2,
+    "auto_applied": 0,
+    "operation_update_summary": {
+      "operation_id": "44444444-4444-4444-8444-444444444444",
+      "operation_data_updated": false,
+      "pending_fields": ["montant_pret", "taux_interet"],
+      "applied_fields": []
+    },
+    "evidence_ref_count": 1,
+    "evidence_refs": [
+      {
+        "evidence_ref_id": "3f6c2a0e-8d7b-5c1e-9a4f-2b8d6e1c7a90",
+        "source_document_id": "55555555-5555-4555-8555-555555555555",
+        "target_table": "operation",
+        "target_column": "montant_pret",
+        "page_ref": "page:2",
+        "quoted_text": "Montant du prêt : 2 500 000 EUR",
+        "confidence_score": 0.92,
+        "provider_status": "provider_ready",
+        "publication_status": "review_required",
+        "source_proof_status": "verified"
+      }
+    ],
+    "narrative_summary": "Contrat de prêt senior de 2 500 000 EUR au taux fixe de 6,5 %.",
+    "audit_version": "ai-extraction-job-result-v2"
+  }
+}
+```
+
+Les champs principaux :
+
+| Champ | Ce qu'il indique |
+| --- | --- |
+| `status` | État du traitement. `completed` veut dire que la lecture est finie, pas que les valeurs sont validées. |
+| `suggestions_created` | Nombre de propositions créées par la lecture. |
+| `auto_applied` | Nombre de propositions appliquées automatiquement, sans validation humaine. |
+| `narrative` | Extrait court du résumé de lecture, tronqué à 160 caractères. |
+| `operation_resolution` | Objet JSON sur le rattachement du document à une opération; ses clés dépendent du traitement. |
+| `error_message` | Cause de l'échec pour `failed` ou `dead_letter`. |
+| `raw_result` | Compte rendu détaillé, décrit ci-dessous. Il peut être `null`. |
+
+### Contenu de `raw_result`
+
+`raw_result` est un objet JSON ouvert : sa structure dépend du traitement, et une clé peut manquer. MARKO n'y publie qu'une liste fermée de clés. Les plus utiles :
+
+- `document_type` : type de document reconnu.
+- `pending_review` et `auto_applied` : propositions en attente de validation et propositions appliquées.
+- `operation_update_summary` : noms des champs de l'opération concernés. `pending_fields` liste les champs en attente, `applied_fields` les champs déjà écrits, `operation_data_updated` vaut `true` si au moins un champ a été écrit.
+- `evidence_refs` : les **citations** de la lecture. Chaque citation donne le champ visé (`target_table`, `target_column`), la page (`page_ref`), le passage cité (`quoted_text`), un score de confiance (`confidence_score`) et l'état de la preuve (`publication_status`, `source_proof_status`). `quoted_text` vaut `null` lorsque la preuve n'est pas publiable.
+- `narrative_summary`, `summary_summary` et leurs empreintes `*_hash` : extraits courts du résumé.
+
+Points d'attention :
+
+- `raw_result` **ne contient pas les valeurs proposées**. Il donne les noms des champs et les citations, pas la valeur lue.
+- C'est une photo prise à la fin du job. Il n'est pas mis à jour quand une personne valide ou refuse une proposition.
+- Le contenu complet du document et les données internes du moteur ne sont pas publiés.
+
+## 3. Validation humaine dans MARKO
+
+Les propositions en attente sont traitées dans l'application MARKO. Une personne valide ou refuse chaque valeur. Il n'existe pas d'endpoint partenaire pour lister ces propositions ou pour les valider.
+
+## 4. Relire les valeurs écrites
+
+Après validation, la valeur est dans l'objet. Chaque endpoint renvoie du JSON; les unités et types des champs métier sont donnés par `GET /field-definitions` et `GET /field-definitions/by-key/{field_key}`.
+
+| Objet | Endpoint | Ce que vous lisez |
+| --- | --- | --- |
+| Opération référencée par votre intégration | `GET /operations/external/{external_id}` | Tous les champs métier dans `data`, dont les lots (`asset_units`) et le registre des baux (`rental_lease_register`) lorsqu'ils sont renseignés, plus `kpi_snapshot`. |
+| Toute opération accessible | `GET /operations/{operation_id}` | Fiche résumée : statuts, phase, `financial_summary` et `reporting_summary`. Ne contient pas `data`. |
+| Remboursements | `GET /operations/{operation_id}/repayments` | Historique paginé des remboursements. |
+| Fonds | `GET /fonds/{fond_id}` | Champs du fonds et `document_values` (valeurs issues de ses documents). |
+| SPV | `GET /spvs/{spv_id}` | Champs de la SPV : identité, dirigeants, AG, contentieux. |
+| Opérateur | `GET /operateurs/{operateur_id}` | Champs de l'opérateur et `data`. |
+| Document | `GET /documents/{document_id}` | Fiche du document et lien de téléchargement lorsqu'il est disponible. |
+
+Pour lire `data` d'une opération créée dans MARKO, elle doit d'abord être associée à votre identifiant externe. Le premier upsert peut le faire avec `existing_marko_id`; c'est une écriture, lisez [Écritures et idempotence](/writes-and-idempotency) avant de l'utiliser.
+
+Sur un fonds ou un opérateur créé par AI Extract, `ai_extract_marker` signale une fiche à compléter. `unread_defaults` liste les colonnes que la lecture n'a pas trouvées : leur valeur par défaut n'est pas une information du document, et elle est alors exposée à `null`.
+
+## Provenance de chaque champ
+
+Pour les champs d'opération, MARKO enregistre la valeur courante, sa source, le document et la page d'origine, la confiance, l'auteur et la date de mise à jour, ainsi que l'historique des changements (ancienne et nouvelle valeur). La source est une chaîne, par exemple `ai_reviewed` pour une valeur proposée par l'IA puis validée, `manual_override` lorsqu'une personne a corrigé la valeur proposée, `manual` pour une saisie ou `calculated` pour une valeur calculée par MARKO. Cette liste n'est pas fermée.
+
+Cette provenance n'est **pas encore dans le contrat stable** documenté ici. Une route bêta du catalogue partenaire la renvoie champ par champ; son format peut changer. Contactez l'équipe MARKO avant de l'utiliser en production.
+
+## Ce qui n'existe pas encore
+
+Dit simplement, pour éviter les mauvaises surprises :
+
+- Pas d'endpoint qui liste les **valeurs proposées non validées** avec leur valeur et leur citation. Le job donne seulement les noms des champs en attente et les citations, sans la valeur.
+- Pas de validation ou de refus d'une proposition par l'API : cela se fait dans MARKO.
+- Pas de provenance par champ dans le contrat stable (bêta uniquement, voir ci-dessus).
+- Pas de `data` complet dans `GET /operations/{operation_id}` : il faut une opération référencée par votre intégration.
+- Les covenants, tranches, tirages, échéances et valorisations ne sont pas dans le contrat stable : leurs routes sont encore en bêta.
+- Cette documentation ne décrit pas de serveur MCP partenaire. Un agent IA peut utiliser l'OpenAPI enrichi et l'index des pages (voir [IA et outils de développement](/ai-and-tools)).

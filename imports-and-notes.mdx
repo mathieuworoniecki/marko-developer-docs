@@ -52,7 +52,7 @@ La route `PUT /operations/external/{operation_external_id}/notes/external/{note_
 
 Pour une note déjà versionnée, un contenu modifié doit fournir un `source_updated_at` strictement plus récent. Ne réécrivez pas l'histoire en utilisant l'heure d'import à la place de la date source. Un conflit doit être résolu dans votre synchronisation avant reprise.
 
-`category` est une chaîne de 1 à 80 caractères, `libre` par défaut. Les valeurs usuelles incluent `call`, `comite` et `juridique`. L'import externe peut créer une option d'entité inconnue; conservez les codes et les `taxonomy_additions` retournés. Les routes `/comments` restent utiles pour les notes ordinaires sans identifiant externe.
+`category` est une chaîne de 1 à 80 caractères, `libre` par défaut. Les valeurs usuelles incluent `call`, `comite` et `juridique`. L'import externe peut créer une option d'entité inconnue. Le reçu ne la liste pas : relisez la note avec `GET /operations/external/{operation_external_id}/notes/external/{note_external_id}` pour obtenir le code retenu. Les routes `/comments` restent utiles pour les notes ordinaires sans identifiant externe.
 
 ## Notes traduites
 

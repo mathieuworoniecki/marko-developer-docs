@@ -4,6 +4,15 @@ sidebarTitle: "Historique des changements"
 description: "Suivre les changements de référence et savoir à quelle version de l'API ils se rapportent."
 ---
 
+## 3 novembre 2026
+
+- Nouveau guide [Récupérer les données lues par MARKO](/data-extracted-guide) : parcours du document au job d'extraction, contenu de `raw_result` (citations, champs en attente ou appliqués), relecture des valeurs validées et limites actuelles.
+- Référence régénérée depuis le backend servi `3cf2929a4e` (v1.5.2.547). Les 158 opérations stables et leurs chemins sont inchangés.
+- Les écritures renvoient désormais un reçu court. Les upserts externes renvoient `external_id`, `marko_id`, `outcome` et `request_id`, sans `resource` ni `taxonomy_additions`; l'upload documentaire ne renvoie plus `document`. `POST /workflows/ai-extraction-jobs` renvoie `id`, `status`, `retry_count` et les dates du job. Les autres écritures (notes, workflows, recommandations, tâches, alertes, notifications, calendrier, fonds, SPV, opérateurs, utilisateurs, vues) suivent le même principe.
+- `GET /reports/inrev` demande le scope `reporting:export` (auparavant `reporting:read`).
+- Nouveaux champs : `responsable_email` sur les opérations externes, pièces jointes et origine des notes, `ai_extract_marker` et `unread_defaults` sur fonds et opérateurs, politique de tâches et d'affichage dans les paramètres d'entité, champs de suivi des tâches.
+- Réponses d'erreur déclarées ajoutées sur certaines routes de workflows et de préférences (`400`, `409`, `410`).
+
 ## 1er octobre 2026
 
 - Référence des 158 routes publiques stables, avec les corps de requête, réponses et paramètres du backend documenté.
